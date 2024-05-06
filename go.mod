@@ -1,4 +1,4 @@
-module project-sprint-w2
+module eniqilo-store
 
 go 1.22.2
 

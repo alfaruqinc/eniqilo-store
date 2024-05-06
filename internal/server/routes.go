@@ -1,10 +1,10 @@
 package server
 
 import (
+	"eniqilo-store/internal/handler"
+	"eniqilo-store/internal/repository"
+	"eniqilo-store/internal/service"
 	"net/http"
-	"project-sprint-w2/internal/handler"
-	"project-sprint-w2/internal/repository"
-	"project-sprint-w2/internal/service"
 
 	"github.com/gin-gonic/gin"
 )

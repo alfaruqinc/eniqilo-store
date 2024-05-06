@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"database/sql"
+	"eniqilo-store/internal/domain"
+	"eniqilo-store/internal/repository"
 	"errors"
-	"project-sprint-w2/internal/domain"
-	"project-sprint-w2/internal/repository"
 	"time"
 
 	"github.com/golang-jwt/jwt"
