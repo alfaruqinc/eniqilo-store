@@ -32,13 +32,24 @@ type CheckoutResponse struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-func NewCheckout() Checkout {
+func (cr *CheckoutRequest) NewCheckouts() []Checkout {
 	id := uuid.New()
 	rawCreatedAt := time.Now().Format(time.RFC3339)
 	createdAt, _ := time.Parse(time.RFC3339, rawCreatedAt)
 
-	return Checkout{
-		ID:        id.String(),
-		CreatedAt: createdAt,
+	var checkouts []Checkout
+	for _, v := range cr.ProductDetails {
+		checkout := Checkout{
+			ID:             id.String(),
+			CreatedAt:      createdAt,
+			UserCustomerID: cr.CustomerID,
+			ProductID:      v.ProductID,
+			Paid:           cr.Paid,
+			Change:         cr.Change,
+		}
+
+		checkouts = append(checkouts, checkout)
 	}
+
+	return checkouts
 }
