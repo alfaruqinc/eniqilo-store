@@ -1,12 +1,11 @@
 package main
 
 import (
+	"eniqilo-store/internal/server"
 	"fmt"
-	"project-sprint-w2/internal/server"
 )
 
 func main() {
-
 	server := server.NewServer()
 
 	err := server.ListenAndServe()

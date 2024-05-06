@@ -1,6 +1,7 @@
 package server
 
 import (
+	"eniqilo-store/internal/database"
 	"fmt"
 	"net/http"
 	"os"
@@ -8,8 +9,6 @@ import (
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
-
-	"project-sprint-w2/internal/database"
 )
 
 type Server struct {

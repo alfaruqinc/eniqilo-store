@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"project-sprint-w2/internal/domain"
-	"project-sprint-w2/internal/service"
+	"eniqilo-store/internal/domain"
+	"eniqilo-store/internal/service"
 
 	"github.com/gin-gonic/gin"
 )

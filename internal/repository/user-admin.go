@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"project-sprint-w2/internal/domain"
+	"eniqilo-store/internal/domain"
 )
 
 type UserAdminRepository interface {
@@ -12,8 +12,7 @@ type UserAdminRepository interface {
 	GetUserByPhoneNumberRepository(ctx context.Context, tx *sql.Tx, email string) (*domain.UserAdmin, error)
 }
 
-type userRepository struct {
-}
+type userRepository struct{}
 
 func NewUserAdminRepository() UserAdminRepository {
 	return &userRepository{}
