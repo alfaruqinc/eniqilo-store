@@ -14,6 +14,7 @@ import (
 
 type Service interface {
 	Health() map[string]string
+	GetDB() *sql.DB
 }
 
 type service struct {
@@ -57,4 +58,8 @@ func (s *service) Health() map[string]string {
 	return map[string]string{
 		"message": "It's healthy",
 	}
+}
+
+func (s *service) GetDB() *sql.DB {
+	return s.db
 }
