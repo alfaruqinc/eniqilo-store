@@ -14,7 +14,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	userAdminRepository := repository.NewUserAdminRepository()
 
-	userAdminService := service.NewUserAdminService(db, userAdminRepository)
+	userAdminService := service.NewUserAdminService(db, userAdminRepository, "secret", 8)
 
 	userAdminHandler := handler.NewUserAdminHandler(userAdminService)
 

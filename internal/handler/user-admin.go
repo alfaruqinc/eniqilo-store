@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"project-sprint-w2/internal/domain"
 	"project-sprint-w2/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -23,8 +24,25 @@ func NewUserAdminHandler(userAdminService service.UserAdminService) UserAdminHan
 
 func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		userAdmin := domain.RegisterUserAdmin{}
+		if err := c.ShouldBindJSON(&userAdmin); err != nil {
+			c.JSON(400, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		response, err := u.userAdminService.RegisterUserAdminService(c.Request.Context(), userAdmin)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Register User Admin",
+			"data":    response,
 		})
 	}
 }

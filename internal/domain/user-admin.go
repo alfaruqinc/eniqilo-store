@@ -4,7 +4,9 @@ package domain
 // Vars
 ////
 
-var ()
+var (
+	UserAdminRoleStaff = "staff"
+)
 
 ////
 // Structs
@@ -29,6 +31,7 @@ type UserAdmin struct {
 	ID          string `db:"id"`
 	Name        string `db:"name"`
 	PhoneNumber string `db:"phone_number"`
+	Role        string `db:"role"`
 	Password    string `db:"password"`
 }
 
