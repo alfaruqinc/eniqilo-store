@@ -5,8 +5,15 @@ import (
 	"eniqilo-store/internal/repository"
 	"eniqilo-store/internal/service"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	jwtSecret     = os.Getenv("JWT_SECRET")
+	bcryptSalt, _ = strconv.Atoi(os.Getenv("BCRYPT_SALT"))
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -14,7 +21,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	userAdminRepository := repository.NewUserAdminRepository()
 
-	userAdminService := service.NewUserAdminService(db, userAdminRepository, "secret", 8)
+	userAdminService := service.NewUserAdminService(db, userAdminRepository, jwtSecret, bcryptSalt)
 
 	userAdminHandler := handler.NewUserAdminHandler(userAdminService)
 
