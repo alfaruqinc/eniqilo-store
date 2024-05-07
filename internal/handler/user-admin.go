@@ -2,6 +2,7 @@ package handler
 
 import (
 	"eniqilo-store/internal/domain"
+	"eniqilo-store/internal/helper"
 	"eniqilo-store/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -26,9 +27,8 @@ func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userAdmin := domain.RegisterUserAdmin{}
 		if err := c.ShouldBindJSON(&userAdmin); err != nil {
-			c.JSON(400, gin.H{
-				"error": err.Error(),
-			})
+			err := helper.ValidateRequest(err)
+			c.JSON(err.Status(), err)
 			return
 		}
 

@@ -4,9 +4,7 @@ package domain
 // Vars
 ////
 
-var (
-	UserAdminRoleStaff = "staff"
-)
+var UserAdminRoleStaff = "staff"
 
 ////
 // Structs
@@ -17,9 +15,9 @@ var (
 ////
 
 type RegisterUserAdmin struct {
-	Name        string `json:"name" validate:"required,phoneNumber"`
-	PhoneNumber string `json:"phone_number" validate:"required,min=5,max=5s"`
-	Password    string `json:"password" validate:"required,min=5,max=15"`
+	Name        string `json:"name" binding:"required,gte=5,lte=50"`
+	PhoneNumber string `json:"phoneNumber" binding:"required,gte=10,lte=16,e164"`
+	Password    string `json:"password" binding:"required,gte=5,lte=15"`
 }
 
 type LoginUserAdmin struct {

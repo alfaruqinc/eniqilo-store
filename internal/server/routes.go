@@ -31,7 +31,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.GET("/health", s.healthHandler)
 
-	staff := r.Group("/staff")
+	apiV1 := r.Group("/v1")
+
+	staff := apiV1.Group("/staff")
 	staff.POST("/register", userAdminHandler.RegisterUserAdminHandler())
 	staff.POST("/login", userAdminHandler.LoginUserAdminHandler())
 
