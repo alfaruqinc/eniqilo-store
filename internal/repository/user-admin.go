@@ -32,7 +32,7 @@ func (u *userRepository) CreateUserAdminRepository(ctx context.Context, tx *sql.
 func (u *userRepository) GetUserByIDAdminRepository(ctx context.Context, tx *sql.Tx, id string) (*domain.UserAdmin, error) {
 	user := domain.UserAdmin{}
 
-	query := `SELECT id, phone_number, name, role FROM user_admin WHERE id = $1`
+	query := `SELECT id, phone_number, name, role FROM user_admins WHERE id = $1`
 
 	row := tx.QueryRowContext(ctx, query, id)
 	err := row.Scan(user)
@@ -46,13 +46,13 @@ func (u *userRepository) GetUserByIDAdminRepository(ctx context.Context, tx *sql
 func (u *userRepository) GetUserByPhoneNumberRepository(ctx context.Context, tx *sql.Tx, phoneNumber string) (*domain.UserAdmin, error) {
 	user := domain.UserAdmin{}
 
-	query := `SELECT id, phone_number, name, role, password FROM user_admin WHERE phone_number = $1`
+	query := `SELECT id, created_at, phone_number, name, role, password FROM user_admins WHERE phone_number = $1`
 
 	row := tx.QueryRowContext(ctx, query, phoneNumber)
-	err := row.Scan(user)
+	err := row.Scan(&user.ID, &user.CreatedAt, &user.PhoneNumber, &user.Name, &user.Role, &user.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	return &domain.UserAdmin{}, nil
+	return &user, nil
 }

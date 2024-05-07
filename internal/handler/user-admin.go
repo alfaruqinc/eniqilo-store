@@ -56,8 +56,17 @@ func (u *userAdminHandler) LoginUserAdminHandler() gin.HandlerFunc {
 			return
 		}
 
+		response, err := u.userAdminService.LoginUserAdminService(c.Request.Context(), userAdmin)
+		if err != nil {
+			c.JSON(400, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Login User Admin",
+			"data":    response,
 		})
 	}
 }
