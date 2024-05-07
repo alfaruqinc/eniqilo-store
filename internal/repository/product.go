@@ -9,6 +9,7 @@ import (
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, tx *sql.Tx, product domain.Product) error
 	UpdateProductByID(ctx context.Context, tx *sql.Tx, product domain.Product) error
+	DeleteProductByID(ctx context.Context, tx *sql.Tx, productId string) error
 	CheckProductExistsByID(ctx context.Context, tx *sql.Tx, productId string) (bool, error)
 }
 
@@ -75,4 +76,17 @@ func (pr *productRepository) CheckProductExistsByID(ctx context.Context, tx *sql
 	}
 
 	return exists, nil
+}
+
+func (pr *productRepository) DeleteProductByID(ctx context.Context, tx *sql.Tx, productId string) error {
+	query := `
+		DELETE FROM products
+		WHERE id = $1
+	`
+	_, err := tx.ExecContext(ctx, query, productId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
