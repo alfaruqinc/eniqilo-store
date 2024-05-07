@@ -8,6 +8,7 @@ import (
 
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, tx *sql.Tx, product domain.Product) error
+	GetProducts(ctx context.Context, tx *sql.Tx, queryParams string) ([]domain.ProductResponse, error)
 	UpdateProductByID(ctx context.Context, tx *sql.Tx, product domain.Product) error
 	DeleteProductByID(ctx context.Context, tx *sql.Tx, productId string) error
 	CheckProductExistsByID(ctx context.Context, tx *sql.Tx, productId string) (bool, error)
@@ -34,6 +35,37 @@ func (pr *productRepository) CreateProduct(ctx context.Context, tx *sql.Tx, prod
 	}
 
 	return nil
+}
+
+func (pr *productRepository) GetProducts(ctx context.Context, tx *sql.Tx, queryParams string) ([]domain.ProductResponse, error) {
+	query := `
+		SELECT id, created_at, name, sku, category, image_url, stock, notes, 
+				price, location, is_available
+		FROM products
+	`
+	rows, err := tx.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	products := []domain.ProductResponse{}
+	for rows.Next() {
+		product := domain.ProductResponse{}
+
+		err := rows.Scan(
+			&product.ID, &product.CreatedAt, &product.Name, &product.Sku,
+			&product.Category, &product.ImageUrl, &product.Stock, &product.Notes,
+			&product.Price, &product.Location, &product.IsAvailable,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+
+	return products, nil
 }
 
 func (pr *productRepository) UpdateProductByID(ctx context.Context, tx *sql.Tx, product domain.Product) error {
