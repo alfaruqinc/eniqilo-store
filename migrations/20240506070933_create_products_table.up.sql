@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS products (
   name varchar NOT NULL,
   sku varchar NOT NULL,
   category varchar NOT NULL,
-  image_urls text[] NOT NULL,
+  image_url varchar NOT NULL,
   notes varchar NOT NULL,
   price numeric NOT NULL,
   stock int NOT NULL,
