@@ -70,6 +70,11 @@ type UpdateProductResponse struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+type DeleteProductResponse struct {
+	ID        string    `json:"id"`
+	DeletedAt time.Time `json:"deletedAt"`
+}
+
 func (pr *ProductRequest) NewProduct() Product {
 	id := uuid.New()
 	rawCreatedAt := time.Now().Format(time.RFC3339)
