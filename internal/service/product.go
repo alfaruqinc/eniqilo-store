@@ -33,18 +33,7 @@ func NewProductService(db *sql.DB, productRepository repository.ProductRepositor
 }
 
 func (ps *productService) CreateProduct(ctx context.Context, product domain.Product) domain.MessageErr {
-	tx, err := ps.db.Begin()
-	if err != nil {
-		return domain.NewInternalServerError(err.Error())
-	}
-	defer tx.Rollback()
-
-	err = ps.productRepository.CreateProduct(ctx, tx, product)
-	if err != nil {
-		return domain.NewInternalServerError(err.Error())
-	}
-
-	err = tx.Commit()
+	err := ps.productRepository.CreateProduct(ctx, ps.db, product)
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
 	}
@@ -150,46 +139,24 @@ func (ps *productService) GetProducts(ctx context.Context, queryParams domain.Pr
 }
 
 func (ps *productService) UpdateProductByID(ctx context.Context, product domain.Product) domain.MessageErr {
-	tx, err := ps.db.Begin()
-	if err != nil {
-		return domain.NewInternalServerError(err.Error())
-	}
-	defer tx.Rollback()
-
-	affRow, err := ps.productRepository.UpdateProductByID(ctx, tx, product)
+	affRow, err := ps.productRepository.UpdateProductByID(ctx, ps.db, product)
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
 	}
 	if affRow == 0 {
 		return domain.NewNotFoundError("product is not found")
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return domain.NewInternalServerError(err.Error())
 	}
 
 	return nil
 }
 
 func (ps *productService) DeleteProductByID(ctx context.Context, productId string) domain.MessageErr {
-	tx, err := ps.db.Begin()
-	if err != nil {
-		return domain.NewInternalServerError(err.Error())
-	}
-	defer tx.Rollback()
-
-	affRow, err := ps.productRepository.DeleteProductByID(ctx, tx, productId)
+	affRow, err := ps.productRepository.DeleteProductByID(ctx, ps.db, productId)
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
 	}
 	if affRow == 0 {
 		return domain.NewNotFoundError("product is not found")
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return domain.NewInternalServerError(err.Error())
 	}
 
 	return nil
