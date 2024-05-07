@@ -1,1 +1,1 @@
-DROP TABLE produtcs;
+DROP TABLE products;
