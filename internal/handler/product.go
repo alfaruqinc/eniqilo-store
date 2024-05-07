@@ -11,7 +11,7 @@ import (
 
 type ProductHandler interface {
 	CreateProduct() gin.HandlerFunc
-	UpdateProduct() gin.HandlerFunc
+	UpdateProductByID() gin.HandlerFunc
 }
 
 type productHandler struct {
@@ -49,7 +49,7 @@ func (ph *productHandler) CreateProduct() gin.HandlerFunc {
 	}
 }
 
-func (ph *productHandler) UpdateProduct() gin.HandlerFunc {
+func (ph *productHandler) UpdateProductByID() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		productBody := domain.ProductRequest{}
 		if err := ctx.ShouldBindJSON(&productBody); err != nil {
@@ -62,7 +62,7 @@ func (ph *productHandler) UpdateProduct() gin.HandlerFunc {
 
 		product := productBody.NewProduct()
 		product.ID = productId
-		err := ph.productService.UpdateProduct(ctx, product)
+		err := ph.productService.UpdateProductByID(ctx, product)
 		if err != nil {
 			ctx.JSON(err.Status(), err)
 			return
