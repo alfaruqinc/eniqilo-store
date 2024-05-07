@@ -9,6 +9,7 @@ import (
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, tx *sql.Tx, product domain.Product) error
 	UpdateProduct(ctx context.Context, tx *sql.Tx, product domain.Product) error
+	CheckProductExistsByID(ctx context.Context, tx *sql.Tx, productId string) (bool, error)
 }
 
 type productRepository struct{}
@@ -57,4 +58,21 @@ func (pr *productRepository) UpdateProduct(ctx context.Context, tx *sql.Tx, prod
 	}
 
 	return nil
+}
+
+func (pr *productRepository) CheckProductExistsByID(ctx context.Context, tx *sql.Tx, productId string) (bool, error) {
+	query := `
+		SELECT EXISTS (
+			SELECT 1
+			FROM products
+			WHERE id = $1
+		)
+	`
+	var exists bool
+	err := tx.QueryRowContext(ctx, query, productId).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }

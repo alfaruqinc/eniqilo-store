@@ -51,6 +51,14 @@ func (ps *productService) UpdateProduct(ctx context.Context, product domain.Prod
 	}
 	defer tx.Rollback()
 
+	productExists, err := ps.productRepository.CheckProductExistsByID(ctx, tx, product.ID)
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+	if !productExists {
+		return domain.NewNotFoundError("product is not found")
+	}
+
 	err = ps.productRepository.UpdateProduct(ctx, tx, product)
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
