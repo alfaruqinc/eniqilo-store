@@ -25,13 +25,25 @@ func NewProductHandler(productService service.ProductService) ProductHandler {
 
 func (ph *productHandler) CreateProduct() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		product := domain.ProductRequest{}
-		if err := ctx.ShouldBindJSON(&product); err != nil {
+		productBody := domain.ProductRequest{}
+		if err := ctx.ShouldBindJSON(&productBody); err != nil {
 			err := helper.ValidateRequest(err)
 			ctx.JSON(err.Status(), err)
 			return
 		}
 
-		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success create product", ""))
+		product := productBody.NewProduct()
+		err := ph.productService.CreateProduct(ctx, product)
+		if err != nil {
+			ctx.JSON(err.Status(), err)
+			return
+		}
+
+		productResponse := domain.CreateProductResponse{
+			ID:        product.ID,
+			CreatedAt: product.CreatedAt,
+		}
+
+		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success create product", productResponse))
 	}
 }
