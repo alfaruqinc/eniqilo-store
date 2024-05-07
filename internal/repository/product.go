@@ -8,6 +8,7 @@ import (
 
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, tx *sql.Tx, product domain.Product) error
+	UpdateProduct(ctx context.Context, tx *sql.Tx, product domain.Product) error
 }
 
 type productRepository struct{}
@@ -25,6 +26,31 @@ func (pr *productRepository) CreateProduct(ctx context.Context, tx *sql.Tx, prod
 		product.ID, product.CreatedAt, product.Name, product.Sku, product.Category,
 		product.ImageUrl, product.Notes, product.Price, product.Stock, product.Location,
 		product.IsAvailable,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pr *productRepository) UpdateProduct(ctx context.Context, tx *sql.Tx, product domain.Product) error {
+	query := `
+		UPDATE products
+		SET name = $2,
+			sku = $3,
+			category = $4,
+			notes = $5,
+			image_url = $6,
+			price = $7,
+			stock = $8,
+			location = $9,
+			is_available = $10
+		WHERE id = $1
+	`
+	_, err := tx.ExecContext(ctx, query,
+		product.ID, product.Name, product.Sku, product.Category, product.ImageUrl,
+		product.Notes, product.Price, product.Stock, product.Location, product.IsAvailable,
 	)
 	if err != nil {
 		return err
