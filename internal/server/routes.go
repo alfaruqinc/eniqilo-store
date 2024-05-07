@@ -20,10 +20,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 	db := s.db.GetDB()
 
 	userAdminRepository := repository.NewUserAdminRepository()
+	productRepository := repository.NewProductRepository()
 
 	userAdminService := service.NewUserAdminService(db, userAdminRepository, jwtSecret, bcryptSalt)
+	productService := service.NewProductService(db, productRepository)
 
 	userAdminHandler := handler.NewUserAdminHandler(userAdminService)
+	productHandler := handler.NewProductHandler(productService)
 
 	r := gin.Default()
 
@@ -36,6 +39,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	staff := apiV1.Group("/staff")
 	staff.POST("/register", userAdminHandler.RegisterUserAdminHandler())
 	staff.POST("/login", userAdminHandler.LoginUserAdminHandler())
+
+	product := apiV1.Group("/product")
+	product.POST("", productHandler.CreateProduct())
 
 	return r
 }

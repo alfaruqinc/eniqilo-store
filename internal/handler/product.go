@@ -3,6 +3,7 @@ package handler
 import (
 	"eniqilo-store/internal/domain"
 	"eniqilo-store/internal/helper"
+	"eniqilo-store/internal/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,10 +13,14 @@ type ProductHandler interface {
 	CreateProduct() gin.HandlerFunc
 }
 
-type productHandler struct{}
+type productHandler struct {
+	productService service.ProductService
+}
 
-func NewProductHandler() ProductHandler {
-	return &productHandler{}
+func NewProductHandler(productService service.ProductService) ProductHandler {
+	return &productHandler{
+		productService: productService,
+	}
 }
 
 func (ph *productHandler) CreateProduct() gin.HandlerFunc {
