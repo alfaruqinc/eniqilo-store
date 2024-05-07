@@ -40,8 +40,8 @@ type ProductRequest struct {
 	Category    string `json:"category" binding:"required,oneof=Clothing Accessories Footware Beverages"`
 	ImageUrl    string `json:"imageUrl" binding:"required,url"`
 	Notes       string `json:"notes" binding:"required,gte=1,lte=200"`
-	Price       int    `json:"price" binding:"required,gte=1"`
-	Stock       int    `json:"stock" binding:"required,gte=0,lte=100000"`
+	Price       int    `json:"price" binding:"min=1"`
+	Stock       int    `json:"stock" binding:"required,min=0,max=100000"`
 	Location    string `json:"location" binding:"required,gte=1,lte=200"`
 	IsAvailable bool   `json:"isAvailable" binding:"required,boolean"`
 }
