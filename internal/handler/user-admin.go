@@ -49,6 +49,13 @@ func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 
 func (u *userAdminHandler) LoginUserAdminHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		userAdmin := domain.LoginUserAdmin{}
+		if err := c.ShouldBindJSON(&userAdmin); err != nil {
+			err := helper.ValidateRequest(err)
+			c.JSON(err.Status(), err)
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Login User Admin",
 		})

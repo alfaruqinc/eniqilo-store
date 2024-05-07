@@ -21,8 +21,8 @@ type RegisterUserAdmin struct {
 }
 
 type LoginUserAdmin struct {
-	PhoneNumber string `json:"phone_number" validate:"required,min=5,max=5s"`
-	Password    string `json:"password" validate:"required,min=5,max=15"`
+	PhoneNumber string `json:"phoneNumber" binding:"required,gte=10,lte=16,e164"`
+	Password    string `json:"password" binding:"required,gte=5,lte=15"`
 }
 
 type UserAdmin struct {
