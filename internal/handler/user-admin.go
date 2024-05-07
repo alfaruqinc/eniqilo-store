@@ -4,10 +4,8 @@ import (
 	"eniqilo-store/internal/domain"
 	"eniqilo-store/internal/helper"
 	"eniqilo-store/internal/service"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 type UserAdminHandler interface {
@@ -29,16 +27,9 @@ func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userAdmin := domain.RegisterUserAdmin{}
 		if err := c.ShouldBindJSON(&userAdmin); err != nil {
-			if err, ok := err.(validator.ValidationErrors); ok {
-				for _, fe := range err {
-					c.JSON(http.StatusBadRequest, gin.H{
-						"error": helper.MsgForTag(fe),
-					})
-					return
-				}
-			}
-
-			c.JSON(http.StatusInternalServerError, err)
+			err := helper.ValidateRequest(err)
+			c.JSON(err.Status(), err)
+			return
 		}
 
 		response, err := u.userAdminService.RegisterUserAdminService(c.Request.Context(), userAdmin)

@@ -1,12 +1,13 @@
 package helper
 
 import (
+	"eniqilo-store/internal/domain"
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
 )
 
-func MsgForTag(fe validator.FieldError) string {
+func msgForTag(fe validator.FieldError) string {
 	field := fe.Field()
 	param := fe.Param()
 
@@ -22,4 +23,13 @@ func MsgForTag(fe validator.FieldError) string {
 	}
 
 	return "unhandled validation"
+}
+
+func ValidateRequest(err error) domain.MessageErr {
+	if err, ok := err.(validator.ValidationErrors); ok {
+		for _, fe := range err {
+			return domain.NewBadRequestError(msgForTag(fe))
+		}
+	}
+	return domain.NewBadRequestError("unhandled validation")
 }
