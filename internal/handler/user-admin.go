@@ -4,7 +4,6 @@ import (
 	"eniqilo-store/internal/domain"
 	"eniqilo-store/internal/helper"
 	"eniqilo-store/internal/service"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,14 +32,14 @@ func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 			if err, ok := err.(validator.ValidationErrors); ok {
 				for _, fe := range err {
 					c.JSON(http.StatusBadRequest, gin.H{
-						"error": helper.MsgForTag(fe.Field(), fe.Tag(), fe.Param()),
+						"error": helper.MsgForTag(fe),
 					})
 					return
 				}
 			}
+
+			c.JSON(http.StatusInternalServerError, err)
 		}
-		fmt.Println(userAdmin)
-		return
 
 		response, err := u.userAdminService.RegisterUserAdminService(c.Request.Context(), userAdmin)
 		if err != nil {

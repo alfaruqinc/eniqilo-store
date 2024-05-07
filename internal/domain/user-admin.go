@@ -16,7 +16,7 @@ var UserAdminRoleStaff = "staff"
 
 type RegisterUserAdmin struct {
 	Name        string `json:"name" binding:"required,gte=5,lte=50"`
-	PhoneNumber string `json:"phoneNumber" validate:"required,min=5,max=5s"`
+	PhoneNumber string `json:"phoneNumber" binding:"required,gte=10,lte=16,e164"`
 	Password    string `json:"password" validate:"required,min=5,max=15"`
 }
 
