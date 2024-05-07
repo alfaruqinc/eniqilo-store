@@ -10,6 +10,7 @@ import (
 type ProductService interface {
 	CreateProduct(ctx context.Context, product domain.Product) domain.MessageErr
 	UpdateProductByID(ctx context.Context, product domain.Product) domain.MessageErr
+	DeleteProductByID(ctx context.Context, productId string) domain.MessageErr
 }
 
 type productService struct {
@@ -60,6 +61,34 @@ func (ps *productService) UpdateProductByID(ctx context.Context, product domain.
 	}
 
 	err = ps.productRepository.UpdateProductByID(ctx, tx, product)
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+
+	return nil
+}
+
+func (ps *productService) DeleteProductByID(ctx context.Context, productId string) domain.MessageErr {
+	tx, err := ps.db.Begin()
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+	defer tx.Rollback()
+
+	productExists, err := ps.productRepository.CheckProductExistsByID(ctx, tx, productId)
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+	if !productExists {
+		return domain.NewNotFoundError("product is not found")
+	}
+
+	err = ps.productRepository.DeleteProductByID(ctx, tx, productId)
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
 	}
