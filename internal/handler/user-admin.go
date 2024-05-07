@@ -4,6 +4,7 @@ import (
 	"eniqilo-store/internal/domain"
 	"eniqilo-store/internal/helper"
 	"eniqilo-store/internal/service"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +26,7 @@ func NewUserAdminHandler(userAdminService service.UserAdminService) UserAdminHan
 
 func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userAdmin := domain.RegisterUserAdmin{}
+		userAdmin := domain.RegisterUserAdminRequest{}
 		if err := c.ShouldBindJSON(&userAdmin); err != nil {
 			err := helper.ValidateRequest(err)
 			c.JSON(err.Status(), err)
@@ -34,9 +35,7 @@ func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 
 		response, err := u.userAdminService.RegisterUserAdminService(c.Request.Context(), userAdmin)
 		if err != nil {
-			c.JSON(400, gin.H{
-				"error": err.Error(),
-			})
+			c.JSON(err.Status(), err)
 			return
 		}
 
@@ -49,8 +48,19 @@ func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 
 func (u *userAdminHandler) LoginUserAdminHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Login User Admin",
-		})
+		userAdmin := domain.LoginUserAdmin{}
+		if err := c.ShouldBindJSON(&userAdmin); err != nil {
+			err := helper.ValidateRequest(err)
+			c.JSON(err.Status(), err)
+			return
+		}
+
+		response, err := u.userAdminService.LoginUserAdminService(c.Request.Context(), userAdmin)
+		if err != nil {
+			c.JSON(err.Status(), err)
+			return
+		}
+
+		c.JSON(http.StatusOK, domain.NewMessageSuccess("success login", response))
 	}
 }

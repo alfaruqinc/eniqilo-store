@@ -1,5 +1,11 @@
 package domain
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 ////
 // Vars
 ////
@@ -14,23 +20,24 @@ var UserAdminRoleStaff = "staff"
 // DTO
 ////
 
-type RegisterUserAdmin struct {
+type RegisterUserAdminRequest struct {
 	Name        string `json:"name" binding:"required,gte=5,lte=50"`
 	PhoneNumber string `json:"phoneNumber" binding:"required,gte=10,lte=16,e164"`
 	Password    string `json:"password" binding:"required,gte=5,lte=15"`
 }
 
 type LoginUserAdmin struct {
-	PhoneNumber string `json:"phone_number" validate:"required,min=5,max=5s"`
-	Password    string `json:"password" validate:"required,min=5,max=15"`
+	PhoneNumber string `json:"phoneNumber" binding:"required,gte=10,lte=16,e164"`
+	Password    string `json:"password" binding:"required,gte=5,lte=15"`
 }
 
 type UserAdmin struct {
-	ID          string `db:"id"`
-	Name        string `db:"name"`
-	PhoneNumber string `db:"phone_number"`
-	Role        string `db:"role"`
-	Password    string `db:"password"`
+	ID          string    `db:"id"`
+	CreatedAt   time.Time `db:"created_at"`
+	Name        string    `db:"name"`
+	PhoneNumber string    `db:"phone_number"`
+	Role        string    `db:"role"`
+	Password    string    `db:"password"`
 }
 
 ////
@@ -42,4 +49,19 @@ type UserAdminResponseWithAccessToken struct {
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phoneNumber"`
 	AccessToken string `json:"accessToken"`
+}
+
+func (rua *RegisterUserAdminRequest) NewUserAdminFromDTO() UserAdmin {
+	id := uuid.New()
+	rawCreatedAt := time.Now().Format(time.RFC3339)
+	createdAt, _ := time.Parse(time.RFC3339, rawCreatedAt)
+
+	return UserAdmin{
+		ID:          id.String(),
+		CreatedAt:   createdAt,
+		Name:        rua.Name,
+		PhoneNumber: rua.PhoneNumber,
+		Password:    rua.Password,
+		Role:        UserAdminRoleStaff,
+	}
 }
