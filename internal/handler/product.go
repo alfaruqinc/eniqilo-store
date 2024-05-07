@@ -12,6 +12,7 @@ import (
 
 type ProductHandler interface {
 	CreateProduct() gin.HandlerFunc
+	GetProducts() gin.HandlerFunc
 	UpdateProductByID() gin.HandlerFunc
 	DeleteProductByID() gin.HandlerFunc
 }
@@ -48,6 +49,18 @@ func (ph *productHandler) CreateProduct() gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success create product", productResponse))
+	}
+}
+
+func (ph *productHandler) GetProducts() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		products, err := ph.productService.GetProducts(ctx, "")
+		if err != nil {
+			ctx.JSON(err.Status(), err)
+			return
+		}
+
+		ctx.JSON(http.StatusOK, domain.NewMessageSuccess("success get products", products))
 	}
 }
 
