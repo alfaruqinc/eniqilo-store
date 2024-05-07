@@ -9,6 +9,7 @@ import (
 
 type ProductService interface {
 	CreateProduct(ctx context.Context, product domain.Product) domain.MessageErr
+	GetProducts(ctx context.Context, queryParams string) ([]domain.ProductResponse, domain.MessageErr)
 	UpdateProductByID(ctx context.Context, product domain.Product) domain.MessageErr
 	DeleteProductByID(ctx context.Context, productId string) domain.MessageErr
 }
@@ -43,6 +44,26 @@ func (ps *productService) CreateProduct(ctx context.Context, product domain.Prod
 	}
 
 	return nil
+}
+
+func (ps *productService) GetProducts(ctx context.Context, queryParams string) ([]domain.ProductResponse, domain.MessageErr) {
+	tx, err := ps.db.Begin()
+	if err != nil {
+		return nil, domain.NewInternalServerError(err.Error())
+	}
+	defer tx.Rollback()
+
+	products, err := ps.productRepository.GetProducts(ctx, tx, queryParams)
+	if err != nil {
+		return nil, domain.NewInternalServerError(err.Error())
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, domain.NewInternalServerError(err.Error())
+	}
+
+	return products, nil
 }
 
 func (ps *productService) UpdateProductByID(ctx context.Context, product domain.Product) domain.MessageErr {
