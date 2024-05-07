@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -48,20 +47,10 @@ func (u *userAdminService) RegisterUserAdminService(ctx context.Context, userAdm
 		return nil, err
 	}
 
-	id := uuid.New().String()
+	userAdmin := userAdminPayload.NewUserAdminFromDTO()
+	userAdmin.Password = string(hashedPassword)
 
-	err = u.userAdminRepository.CreateUserAdminRepository(ctx, tx, domain.UserAdmin{
-		ID:          id,
-		PhoneNumber: userAdminPayload.PhoneNumber,
-		Password:    string(hashedPassword),
-		Name:        userAdminPayload.Name,
-		Role:        domain.UserAdminRoleStaff,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	newUserAdmin, err := u.userAdminRepository.GetUserByIDAdminRepository(ctx, tx, id)
+	err = u.userAdminRepository.CreateUserAdminRepository(ctx, tx, userAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -71,12 +60,12 @@ func (u *userAdminService) RegisterUserAdminService(ctx context.Context, userAdm
 		return nil, err
 	}
 
-	token, err := u.generateToken(*newUserAdmin)
+	token, err := u.generateToken(userAdmin)
 	if err != nil {
 		return nil, err
 	}
 
-	return u.mapUserAdminResponseWithAccessToken(newUserAdmin, token), nil
+	return u.mapUserAdminResponseWithAccessToken(&userAdmin, token), nil
 }
 
 func (u *userAdminService) LoginUserAdminService(ctx context.Context, userAdminPayload domain.LoginUserAdmin) (*domain.UserAdminResponseWithAccessToken, error) {

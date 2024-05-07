@@ -19,9 +19,9 @@ func NewUserAdminRepository() UserAdminRepository {
 }
 
 func (u *userRepository) CreateUserAdminRepository(ctx context.Context, tx *sql.Tx, userAdmin domain.UserAdmin) error {
-	query := `INSERT INTO user_admin (phone_number, password, name, role) VALUES ($1, $2, $3, $4)`
+	query := `INSERT INTO user_admins (id, created_at, phone_number, password, name, role) VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err := tx.ExecContext(ctx, query, userAdmin.PhoneNumber, userAdmin.Password, userAdmin.Name, userAdmin.Role)
+	_, err := tx.ExecContext(ctx, query, userAdmin.ID, userAdmin.CreatedAt, userAdmin.PhoneNumber, userAdmin.Password, userAdmin.Name, userAdmin.Role)
 	if err != nil {
 		return err
 	}
