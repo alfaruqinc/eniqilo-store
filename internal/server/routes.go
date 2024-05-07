@@ -42,6 +42,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	product := apiV1.Group("/product")
 	product.POST("", productHandler.CreateProduct())
+	product.PUT(":id", productHandler.UpdateProduct())
 
 	return r
 }
