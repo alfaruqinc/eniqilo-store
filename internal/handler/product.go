@@ -54,8 +54,12 @@ func (ph *productHandler) CreateProduct() gin.HandlerFunc {
 
 func (ph *productHandler) GetProducts() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		products, err := ph.productService.GetProducts(ctx, "")
+		var queryParams domain.ProductQueryParams
+		ctx.ShouldBindQuery(&queryParams)
+
+		products, err := ph.productService.GetProducts(ctx, queryParams)
 		if err != nil {
+			err, _ := err.(domain.MessageErr)
 			ctx.JSON(err.Status(), err)
 			return
 		}

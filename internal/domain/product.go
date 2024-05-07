@@ -75,6 +75,19 @@ type DeleteProductResponse struct {
 	DeletedAt time.Time `json:"deletedAt"`
 }
 
+type ProductQueryParams struct {
+	Id          string `form:"id"`
+	Limit       string `form:"limit"`
+	Offset      string `form:"offset"`
+	Name        string `form:"name"`
+	IsAvailable string `form:"isAvailable"`
+	Category    string `form:"category"`
+	Sku         string `form:"sku"`
+	Price       string `form:"price"`
+	InStock     string `form:"inStock"`
+	CreatedAt   string `form:"createdAt"`
+}
+
 func (pr *ProductRequest) NewProduct() Product {
 	id := uuid.New()
 	rawCreatedAt := time.Now().Format(time.RFC3339)
