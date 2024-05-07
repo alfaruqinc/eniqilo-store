@@ -9,14 +9,14 @@ import (
 var (
 	ProductCategoryClothing    = "Clothing"
 	ProductCategoryAccessories = "Accessories"
-	ProductCategoryFootware    = "Footware"
+	ProductCategoryFootwear    = "Footwear"
 	ProductCategoryBeverages   = "Beverages"
 )
 
 var ProductCategory = []string{
 	ProductCategoryClothing,
 	ProductCategoryAccessories,
-	ProductCategoryFootware,
+	ProductCategoryFootwear,
 	ProductCategoryBeverages,
 }
 
