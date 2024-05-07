@@ -25,7 +25,7 @@ func NewUserAdminHandler(userAdminService service.UserAdminService) UserAdminHan
 
 func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userAdmin := domain.RegisterUserAdmin{}
+		userAdmin := domain.RegisterUserAdminRequest{}
 		if err := c.ShouldBindJSON(&userAdmin); err != nil {
 			err := helper.ValidateRequest(err)
 			c.JSON(err.Status(), err)

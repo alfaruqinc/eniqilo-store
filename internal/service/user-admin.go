@@ -14,7 +14,7 @@ import (
 )
 
 type UserAdminService interface {
-	RegisterUserAdminService(ctx context.Context, userAdmin domain.RegisterUserAdmin) (*domain.UserAdminResponseWithAccessToken, error)
+	RegisterUserAdminService(ctx context.Context, userAdmin domain.RegisterUserAdminRequest) (*domain.UserAdminResponseWithAccessToken, error)
 	LoginUserAdminService(ctx context.Context, userAdmin domain.LoginUserAdmin) (*domain.UserAdminResponseWithAccessToken, error)
 	generateToken(userAdmin domain.UserAdmin) (string, error)
 	mapUserAdminResponseWithAccessToken(userAdmin *domain.UserAdmin, token string) *domain.UserAdminResponseWithAccessToken
@@ -36,7 +36,7 @@ func NewUserAdminService(db *sql.DB, userAdminRepository repository.UserAdminRep
 	}
 }
 
-func (u *userAdminService) RegisterUserAdminService(ctx context.Context, userAdminPayload domain.RegisterUserAdmin) (*domain.UserAdminResponseWithAccessToken, error) {
+func (u *userAdminService) RegisterUserAdminService(ctx context.Context, userAdminPayload domain.RegisterUserAdminRequest) (*domain.UserAdminResponseWithAccessToken, error) {
 	tx, err := u.db.Begin()
 	if err != nil {
 		return nil, err
