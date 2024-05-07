@@ -35,15 +35,15 @@ type Product struct {
 }
 
 type ProductRequest struct {
-	Name        string `json:"name"`
-	Sku         string `json:"sku"`
-	Category    string `json:"category"`
-	ImageUrl    string `json:"imageUrl"`
-	Notes       string `json:"notes"`
-	Price       int    `json:"price"`
-	Stock       int    `json:"stock"`
-	Location    string `json:"location"`
-	IsAvailable bool   `json:"isAvailable"`
+	Name        string `json:"name" binding:"required,gte=1,lte=30"`
+	Sku         string `json:"sku" binding:"required,gte=1,lte=30"`
+	Category    string `json:"category" binding:"required,oneof=Clothing Accessories Footware Beverages"`
+	ImageUrl    string `json:"imageUrl" binding:"required,url"`
+	Notes       string `json:"notes" binding:"required,gte=1,lte=200"`
+	Price       int    `json:"price" binding:"required,gte=1"`
+	Stock       int    `json:"stock" binding:"required,gte=0,lte=100000"`
+	Location    string `json:"location" binding:"required,gte=1,lte=200"`
+	IsAvailable bool   `json:"isAvailable" binding:"required,boolean"`
 }
 
 type CreateProductResponse struct {
