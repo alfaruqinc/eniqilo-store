@@ -5,9 +5,9 @@ type SuccessData struct {
 	Data    any    `json:"data"`
 }
 
-func NewMessageSuccess(data any) SuccessData {
+func NewMessageSuccess(msg string, data any) SuccessData {
 	return SuccessData{
-		Message: "success",
+		Message: msg,
 		Data:    data,
 	}
 }

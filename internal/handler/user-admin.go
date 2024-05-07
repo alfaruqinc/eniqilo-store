@@ -4,6 +4,7 @@ import (
 	"eniqilo-store/internal/domain"
 	"eniqilo-store/internal/helper"
 	"eniqilo-store/internal/service"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,9 +35,7 @@ func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 
 		response, err := u.userAdminService.RegisterUserAdminService(c.Request.Context(), userAdmin)
 		if err != nil {
-			c.JSON(400, gin.H{
-				"error": err.Error(),
-			})
+			c.JSON(err.Status(), err)
 			return
 		}
 
@@ -58,15 +57,10 @@ func (u *userAdminHandler) LoginUserAdminHandler() gin.HandlerFunc {
 
 		response, err := u.userAdminService.LoginUserAdminService(c.Request.Context(), userAdmin)
 		if err != nil {
-			c.JSON(400, gin.H{
-				"error": err.Error(),
-			})
+			c.JSON(err.Status(), err)
 			return
 		}
 
-		c.JSON(200, gin.H{
-			"message": "Login User Admin",
-			"data":    response,
-		})
+		c.JSON(http.StatusOK, domain.NewMessageSuccess("success login", response))
 	}
 }
