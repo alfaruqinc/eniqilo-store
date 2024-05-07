@@ -156,17 +156,12 @@ func (ps *productService) UpdateProductByID(ctx context.Context, product domain.
 	}
 	defer tx.Rollback()
 
-	productExists, err := ps.productRepository.CheckProductExistsByID(ctx, tx, product.ID)
+	affRow, err := ps.productRepository.UpdateProductByID(ctx, tx, product)
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
 	}
-	if !productExists {
+	if affRow == 0 {
 		return domain.NewNotFoundError("product is not found")
-	}
-
-	err = ps.productRepository.UpdateProductByID(ctx, tx, product)
-	if err != nil {
-		return domain.NewInternalServerError(err.Error())
 	}
 
 	err = tx.Commit()
@@ -184,17 +179,12 @@ func (ps *productService) DeleteProductByID(ctx context.Context, productId strin
 	}
 	defer tx.Rollback()
 
-	productExists, err := ps.productRepository.CheckProductExistsByID(ctx, tx, productId)
+	affRow, err := ps.productRepository.DeleteProductByID(ctx, tx, productId)
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
 	}
-	if !productExists {
+	if affRow == 0 {
 		return domain.NewNotFoundError("product is not found")
-	}
-
-	err = ps.productRepository.DeleteProductByID(ctx, tx, productId)
-	if err != nil {
-		return domain.NewInternalServerError(err.Error())
 	}
 
 	err = tx.Commit()

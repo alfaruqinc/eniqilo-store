@@ -9,8 +9,8 @@ import (
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, tx *sql.Tx, product domain.Product) error
 	GetProducts(ctx context.Context, tx *sql.DB, queryParams string, args []any) ([]domain.ProductResponse, error)
-	UpdateProductByID(ctx context.Context, tx *sql.Tx, product domain.Product) error
-	DeleteProductByID(ctx context.Context, tx *sql.Tx, productId string) error
+	UpdateProductByID(ctx context.Context, tx *sql.Tx, product domain.Product) (int64, error)
+	DeleteProductByID(ctx context.Context, tx *sql.Tx, productId string) (int64, error)
 	CheckProductExistsByID(ctx context.Context, tx *sql.Tx, productId string) (bool, error)
 }
 
@@ -70,7 +70,7 @@ func (pr *productRepository) GetProducts(ctx context.Context, db *sql.DB, queryP
 	return products, nil
 }
 
-func (pr *productRepository) UpdateProductByID(ctx context.Context, tx *sql.Tx, product domain.Product) error {
+func (pr *productRepository) UpdateProductByID(ctx context.Context, tx *sql.Tx, product domain.Product) (int64, error) {
 	query := `
 		UPDATE products
 		SET name = $2,
@@ -84,15 +84,20 @@ func (pr *productRepository) UpdateProductByID(ctx context.Context, tx *sql.Tx, 
 			is_available = $10
 		WHERE id = $1
 	`
-	_, err := tx.ExecContext(ctx, query,
+	res, err := tx.ExecContext(ctx, query,
 		product.ID, product.Name, product.Sku, product.Category, product.ImageUrl,
 		product.Notes, product.Price, product.Stock, product.Location, product.IsAvailable,
 	)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	affRow, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return affRow, nil
 }
 
 func (pr *productRepository) CheckProductExistsByID(ctx context.Context, tx *sql.Tx, productId string) (bool, error) {
@@ -112,15 +117,20 @@ func (pr *productRepository) CheckProductExistsByID(ctx context.Context, tx *sql
 	return exists, nil
 }
 
-func (pr *productRepository) DeleteProductByID(ctx context.Context, tx *sql.Tx, productId string) error {
+func (pr *productRepository) DeleteProductByID(ctx context.Context, tx *sql.Tx, productId string) (int64, error) {
 	query := `
 		DELETE FROM products
 		WHERE id = $1
 	`
-	_, err := tx.ExecContext(ctx, query, productId)
+	res, err := tx.ExecContext(ctx, query, productId)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	affRow, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return affRow, nil
 }
