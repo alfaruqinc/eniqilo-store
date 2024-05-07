@@ -8,7 +8,7 @@ import (
 
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, tx *sql.Tx, product domain.Product) error
-	GetProducts(ctx context.Context, tx *sql.Tx, queryParams string) ([]domain.ProductResponse, error)
+	GetProducts(ctx context.Context, tx *sql.DB, queryParams string, args []any) ([]domain.ProductResponse, error)
 	UpdateProductByID(ctx context.Context, tx *sql.Tx, product domain.Product) error
 	DeleteProductByID(ctx context.Context, tx *sql.Tx, productId string) error
 	CheckProductExistsByID(ctx context.Context, tx *sql.Tx, productId string) (bool, error)
@@ -37,13 +37,15 @@ func (pr *productRepository) CreateProduct(ctx context.Context, tx *sql.Tx, prod
 	return nil
 }
 
-func (pr *productRepository) GetProducts(ctx context.Context, tx *sql.Tx, queryParams string) ([]domain.ProductResponse, error) {
+func (pr *productRepository) GetProducts(ctx context.Context, db *sql.DB, queryParams string, args []any) ([]domain.ProductResponse, error) {
 	query := `
 		SELECT id, created_at, name, sku, category, image_url, stock, notes, 
 				price, location, is_available
 		FROM products
 	`
-	rows, err := tx.QueryContext(ctx, query)
+	query += queryParams
+
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
