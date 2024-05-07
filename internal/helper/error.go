@@ -18,8 +18,12 @@ func msgForTag(fe validator.FieldError) string {
 		return fmt.Sprintf("%s should greater than or equal to %s", field, param)
 	case "lte":
 		return fmt.Sprintf("%s should less than or equal to %s", field, param)
-	case "e164":
+	case "e164", "url":
 		return fmt.Sprintf("wrong %s format", field)
+	case "boolean":
+		return fmt.Sprintf("%s should be true or false", field)
+	case "oneof":
+		return fmt.Sprintf("%s should be one of this value %s", field, param)
 	}
 
 	return "unhandled validation"
