@@ -1,1 +1,1 @@
-DROP TABLE produtcs;
+DROP TABLE IF EXISTS produtcs;
