@@ -41,6 +41,14 @@ func (u *userAdminService) RegisterUserAdminService(ctx context.Context, userAdm
 	}
 	defer tx.Rollback()
 
+	phoneNumberExists, err := u.userAdminRepository.CheckPhoneNumberExists(ctx, tx, userAdminPayload.PhoneNumber)
+	if err != nil {
+		return nil, domain.NewInternalServerError(err.Error())
+	}
+	if phoneNumberExists {
+		return nil, domain.NewConflictError("phone number already exists")
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userAdminPayload.Password), u.bcryptSalt)
 	if err != nil {
 		return nil, domain.NewInternalServerError(err.Error())
@@ -76,7 +84,7 @@ func (u *userAdminService) LoginUserAdminService(ctx context.Context, userAdminP
 
 	userAdmin, err := u.userAdminRepository.GetUserByPhoneNumberRepository(ctx, tx, userAdminPayload.PhoneNumber)
 	if err != nil {
-		return nil, domain.NewNotFoundError("user is not found")
+		return nil, domain.NewNotFoundError("staff is not found")
 	}
 
 	err = tx.Commit()

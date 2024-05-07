@@ -9,7 +9,8 @@ import (
 type UserAdminRepository interface {
 	CreateUserAdminRepository(ctx context.Context, tx *sql.Tx, userAdmin domain.UserAdmin) error
 	GetUserByIDAdminRepository(ctx context.Context, tx *sql.Tx, id string) (*domain.UserAdmin, error)
-	GetUserByPhoneNumberRepository(ctx context.Context, tx *sql.Tx, email string) (*domain.UserAdmin, error)
+	GetUserByPhoneNumberRepository(ctx context.Context, tx *sql.Tx, phoneNumber string) (*domain.UserAdmin, error)
+	CheckPhoneNumberExists(ctx context.Context, tx *sql.Tx, phoneNumber string) (bool, error)
 }
 
 type userRepository struct{}
@@ -55,4 +56,21 @@ func (u *userRepository) GetUserByPhoneNumberRepository(ctx context.Context, tx 
 	}
 
 	return &user, nil
+}
+
+func (u *userRepository) CheckPhoneNumberExists(ctx context.Context, tx *sql.Tx, phoneNumber string) (bool, error) {
+	query := `
+		SELECT EXISTS (
+			SELECT 1
+			FROM user_admins
+			WHERE phone_number = $1
+		)
+	`
+	var exists bool
+	err := tx.QueryRowContext(ctx, query, phoneNumber).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }
