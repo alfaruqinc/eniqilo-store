@@ -1,1 +1,1 @@
-DROP TABLE checkouts;
+DROP TABLE IF EXISTS checkouts;
