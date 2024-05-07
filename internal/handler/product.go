@@ -5,6 +5,7 @@ import (
 	"eniqilo-store/internal/helper"
 	"eniqilo-store/internal/service"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,6 +13,7 @@ import (
 type ProductHandler interface {
 	CreateProduct() gin.HandlerFunc
 	UpdateProductByID() gin.HandlerFunc
+	DeleteProductByID() gin.HandlerFunc
 }
 
 type productHandler struct {
@@ -74,5 +76,26 @@ func (ph *productHandler) UpdateProductByID() gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success update product", productResponse))
+	}
+}
+
+func (ph *productHandler) DeleteProductByID() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		productId := ctx.Param("id")
+
+		err := ph.productService.DeleteProductByID(ctx, productId)
+		if err != nil {
+			ctx.JSON(err.Status(), err)
+			return
+		}
+
+		rawDeletedAt := time.Now().Format(time.RFC3339)
+		deletedAt, _ := time.Parse(time.RFC3339, rawDeletedAt)
+		productResponse := domain.DeleteProductResponse{
+			ID:        productId,
+			DeletedAt: deletedAt,
+		}
+
+		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success delete product", productResponse))
 	}
 }
