@@ -1,4 +1,4 @@
-CREATE TABLE products (
+CREATE TABLE IF NOT EXISTS products (
   id uuid PRIMARY KEY,
   name varchar NOT NULL,
   sku varchar NOT NULL,

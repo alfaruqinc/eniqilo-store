@@ -1,4 +1,4 @@
-CREATE TABLE checkouts (
+CREATE TABLE IF NOT EXISTS checkouts (
   id uuid PRIMARY KEY,
   user_customer_id uuid NOT NULL,
   product_id uuid NOT NULL,

@@ -1,4 +1,4 @@
-CREATE TABLE user_admins (
+CREATE TABLE IF NOT EXISTS user_admins (
   id uuid PRIMARY KEY,
   phone_number varchar NOT NULL,
   name varchar NOT NULL,
