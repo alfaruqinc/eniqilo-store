@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"eniqilo-store/internal/domain"
 	"eniqilo-store/internal/repository"
+	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -43,7 +46,37 @@ func (ucs *userCustomerService) CreateUserCustomer(ctx context.Context, userCust
 
 func (ucs *userCustomerService) GetUserCustomers(ctx context.Context, queryParams domain.UserCustomerQueryParams) ([]domain.UserCustomerResponse, domain.MessageErr) {
 	var query string
+	var whereClause []string
 	var args []any
+
+	val := reflect.ValueOf(queryParams)
+	typ := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		key := strings.ToLower(typ.Field(i).Name)
+		value := val.Field(i).String()
+		argPos := len(args) + 1
+
+		if len(value) < 1 {
+			continue
+		}
+
+		if key == "phonenumber" {
+			key = "phone_number"
+			value += "%"
+		}
+
+		if key == "name" {
+			value = "%" + value + "%"
+		}
+
+		whereClause = append(whereClause, fmt.Sprintf("%s ILIKE $%d", key, argPos))
+		args = append(args, value)
+	}
+
+	if len(whereClause) > 0 {
+		query += "\nWHERE " + strings.Join(whereClause, " AND ")
+	}
 
 	customers, err := ucs.userCustomerRepository.GetCustomers(ctx, ucs.db, query, args)
 	if err != nil {
