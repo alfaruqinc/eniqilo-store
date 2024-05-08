@@ -7,9 +7,9 @@ import (
 )
 
 type UserAdminRepository interface {
-	CreateUserAdminRepository(ctx context.Context, tx *sql.Tx, userAdmin domain.UserAdmin) error
+	CreateUserAdminRepository(ctx context.Context, db *sql.DB, userAdmin domain.UserAdmin) error
 	GetUserByIDAdminRepository(ctx context.Context, tx *sql.Tx, id string) (*domain.UserAdmin, error)
-	GetUserByPhoneNumberRepository(ctx context.Context, tx *sql.Tx, phoneNumber string) (*domain.UserAdmin, error)
+	GetUserByPhoneNumberRepository(ctx context.Context, db *sql.DB, phoneNumber string) (*domain.UserAdmin, error)
 	CheckPhoneNumberExists(ctx context.Context, tx *sql.Tx, phoneNumber string) (bool, error)
 }
 
@@ -19,10 +19,10 @@ func NewUserAdminRepository() UserAdminRepository {
 	return &userRepository{}
 }
 
-func (u *userRepository) CreateUserAdminRepository(ctx context.Context, tx *sql.Tx, userAdmin domain.UserAdmin) error {
+func (u *userRepository) CreateUserAdminRepository(ctx context.Context, db *sql.DB, userAdmin domain.UserAdmin) error {
 	query := `INSERT INTO user_admins (id, created_at, phone_number, password, name, role) VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err := tx.ExecContext(ctx, query, userAdmin.ID, userAdmin.CreatedAt, userAdmin.PhoneNumber, userAdmin.Password, userAdmin.Name, userAdmin.Role)
+	_, err := db.ExecContext(ctx, query, userAdmin.ID, userAdmin.CreatedAt, userAdmin.PhoneNumber, userAdmin.Password, userAdmin.Name, userAdmin.Role)
 	if err != nil {
 		return err
 	}
@@ -44,12 +44,12 @@ func (u *userRepository) GetUserByIDAdminRepository(ctx context.Context, tx *sql
 	return &domain.UserAdmin{}, nil
 }
 
-func (u *userRepository) GetUserByPhoneNumberRepository(ctx context.Context, tx *sql.Tx, phoneNumber string) (*domain.UserAdmin, error) {
+func (u *userRepository) GetUserByPhoneNumberRepository(ctx context.Context, db *sql.DB, phoneNumber string) (*domain.UserAdmin, error) {
 	user := domain.UserAdmin{}
 
 	query := `SELECT id, created_at, phone_number, name, role, password FROM user_admins WHERE phone_number = $1`
 
-	row := tx.QueryRowContext(ctx, query, phoneNumber)
+	row := db.QueryRowContext(ctx, query, phoneNumber)
 	err := row.Scan(&user.ID, &user.CreatedAt, &user.PhoneNumber, &user.Name, &user.Role, &user.Password)
 	if err != nil {
 		return nil, err
