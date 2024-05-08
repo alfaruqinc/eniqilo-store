@@ -11,13 +11,11 @@ type UserCustomer struct {
 	CreatedAt   time.Time `db:"created_at"`
 	Name        string    `db:"name"`
 	PhoneNumber string    `db:"phone_number"`
-	Password    string    `db:"password"`
 }
 
 type RegisterUserCustomerRequest struct {
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phone_number"`
-	Password    string `json:"password"`
 }
 
 type RegisterUserCustomerResponse struct {
@@ -42,6 +40,5 @@ func (cr *RegisterUserCustomerRequest) NewUserCustomer() UserCustomer {
 		CreatedAt:   createdAt,
 		Name:        cr.Name,
 		PhoneNumber: cr.PhoneNumber,
-		Password:    cr.Password,
 	}
 }
