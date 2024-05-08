@@ -36,6 +36,7 @@ func (uch *userCustomerHandler) CreateUserCustomer() gin.HandlerFunc {
 		err := uch.userCustomerSerivce.CreateUserCustomer(ctx.Request.Context(), userCustomer)
 		if err != nil {
 			ctx.JSON(err.Status(), err)
+			return
 		}
 
 		response := domain.RegisterUserCustomerResponse{
