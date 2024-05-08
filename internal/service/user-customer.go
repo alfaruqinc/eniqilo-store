@@ -11,6 +11,7 @@ import (
 
 type UserCustomerService interface {
 	CreateUserCustomer(ctx context.Context, userCustomer domain.UserCustomer) domain.MessageErr
+	GetUserCustomers(ctx context.Context, queryParams domain.UserCustomerQueryParams) ([]domain.UserCustomerResponse, domain.MessageErr)
 }
 
 type userCustomerService struct {
@@ -38,4 +39,16 @@ func (ucs *userCustomerService) CreateUserCustomer(ctx context.Context, userCust
 	}
 
 	return nil
+}
+
+func (ucs *userCustomerService) GetUserCustomers(ctx context.Context, queryParams domain.UserCustomerQueryParams) ([]domain.UserCustomerResponse, domain.MessageErr) {
+	var query string
+	var args []any
+
+	customers, err := ucs.userCustomerRepository.GetCustomers(ctx, ucs.db, query, args)
+	if err != nil {
+		return nil, domain.NewInternalServerError(err.Error())
+	}
+
+	return customers, nil
 }
