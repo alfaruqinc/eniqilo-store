@@ -22,14 +22,17 @@ func (s *Server) RegisterRoutes() http.Handler {
 	userAdminRepository := repository.NewUserAdminRepository()
 	productRepository := repository.NewProductRepository()
 	userCustomerRepository := repository.NewUserCustomerRepository()
+	checkoutRepository := repository.NewCheckoutRepository()
 
 	userAdminService := service.NewUserAdminService(db, userAdminRepository, jwtSecret, bcryptSalt)
 	productService := service.NewProductService(db, productRepository)
 	userCustomerService := service.NewUserCustomerService(db, userCustomerRepository)
+	checkoutService := service.NewCheckoutService(db, checkoutRepository)
 
 	userAdminHandler := handler.NewUserAdminHandler(userAdminService)
 	productHandler := handler.NewProductHandler(productService)
 	userCustomerHandler := handler.NewUserCustomerHandler(userCustomerService)
+	checkoutHandler := handler.NewCheckoutHandler(checkoutService)
 
 	r := gin.Default()
 
@@ -48,6 +51,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	product.GET("", productHandler.GetProducts())
 	product.PUT(":id", productHandler.UpdateProductByID())
 	product.DELETE(":id", productHandler.DeleteProductByID())
+
+	checkout := product.Group("/checkout")
+	checkout.POST("", checkoutHandler.CreateCheckout())
 
 	customer := apiV1.Group("/customer")
 	customer.GET("", userCustomerHandler.GetUserCustomers())
