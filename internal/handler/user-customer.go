@@ -11,6 +11,7 @@ import (
 
 type UserCustomerHandler interface {
 	CreateUserCustomer() gin.HandlerFunc
+	GetUserCustomers() gin.HandlerFunc
 }
 
 type userCustomerHandler struct {
@@ -46,5 +47,20 @@ func (uch *userCustomerHandler) CreateUserCustomer() gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success register customer", response))
+	}
+}
+
+func (uch *userCustomerHandler) GetUserCustomers() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var queryParams domain.UserCustomerQueryParams
+		ctx.ShouldBindQuery(&queryParams)
+
+		customers, err := uch.userCustomerSerivce.GetUserCustomers(ctx, queryParams)
+		if err != nil {
+			ctx.JSON(err.Status(), err)
+			return
+		}
+
+		ctx.JSON(http.StatusOK, domain.NewMessageSuccess("success get customers", customers))
 	}
 }

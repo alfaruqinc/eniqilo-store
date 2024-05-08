@@ -25,9 +25,14 @@ type RegisterUserCustomerResponse struct {
 }
 
 type UserCustomerResponse struct {
-	ID          string `json:"id"`
+	ID          string `json:"userId"`
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phoneNumber"`
+}
+
+type UserCustomerQueryParams struct {
+	Name        string `form:"name"`
+	PhoneNumber string `form:"phoneNumber"`
 }
 
 func (cr *RegisterUserCustomerRequest) NewUserCustomer() UserCustomer {
