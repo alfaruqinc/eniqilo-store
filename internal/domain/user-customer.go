@@ -19,7 +19,7 @@ type RegisterUserCustomerRequest struct {
 }
 
 type RegisterUserCustomerResponse struct {
-	ID          string `json:"id"`
+	ID          string `json:"userId"`
 	Name        string `json:"name"`
 	PhoneNumber string `json:"phoneNumber"`
 }
