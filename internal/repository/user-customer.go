@@ -43,7 +43,7 @@ func (ucr *userCustomerRepository) GetCustomers(ctx context.Context, db *sql.DB,
 	}
 	defer rows.Close()
 
-	var customers []domain.UserCustomerResponse
+	customers := []domain.UserCustomerResponse{}
 	for rows.Next() {
 		customer := domain.UserCustomerResponse{}
 
