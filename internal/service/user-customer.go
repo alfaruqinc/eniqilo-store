@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"eniqilo-store/internal/domain"
 	"eniqilo-store/internal/repository"
+
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type UserCustomerService interface {
@@ -26,6 +28,12 @@ func NewUserCustomerService(db *sql.DB, userCustomerRepository repository.UserCu
 func (ucs *userCustomerService) CreateUserCustomer(ctx context.Context, userCustomer domain.UserCustomer) domain.MessageErr {
 	err := ucs.userCustomerRepository.CreateUserCustomer(ctx, ucs.db, userCustomer)
 	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "23505" {
+				return domain.NewConflictError("phone number already exists")
+			}
+		}
+
 		return domain.NewInternalServerError(err.Error())
 	}
 

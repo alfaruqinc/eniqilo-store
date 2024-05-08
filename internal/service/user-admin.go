@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -41,14 +42,6 @@ func (u *userAdminService) RegisterUserAdminService(ctx context.Context, userAdm
 	}
 	defer tx.Rollback()
 
-	phoneNumberExists, err := u.userAdminRepository.CheckPhoneNumberExists(ctx, tx, userAdminPayload.PhoneNumber)
-	if err != nil {
-		return nil, domain.NewInternalServerError(err.Error())
-	}
-	if phoneNumberExists {
-		return nil, domain.NewConflictError("phone number already exists")
-	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userAdminPayload.Password), u.bcryptSalt)
 	if err != nil {
 		return nil, domain.NewInternalServerError(err.Error())
@@ -59,6 +52,12 @@ func (u *userAdminService) RegisterUserAdminService(ctx context.Context, userAdm
 
 	err = u.userAdminRepository.CreateUserAdminRepository(ctx, tx, userAdmin)
 	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "23505" {
+				return nil, domain.NewConflictError("phone number already exists")
+			}
+		}
+
 		return nil, domain.NewInternalServerError(err.Error())
 	}
 
