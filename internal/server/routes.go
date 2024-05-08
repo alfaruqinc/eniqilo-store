@@ -50,6 +50,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	product.DELETE(":id", productHandler.DeleteProductByID())
 
 	customer := apiV1.Group("/customer")
+	customer.GET("", userCustomerHandler.GetUserCustomers())
 	customer.POST("/register", userCustomerHandler.CreateUserCustomer())
 
 	return r
