@@ -39,7 +39,7 @@ func (u *userAdminHandler) RegisterUserAdminHandler() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusCreated, gin.H{
 			"message": "Register User Admin",
 			"data":    response,
 		})
