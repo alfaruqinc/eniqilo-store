@@ -21,12 +21,15 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	userAdminRepository := repository.NewUserAdminRepository()
 	productRepository := repository.NewProductRepository()
+	userCustomerRepository := repository.NewUserCustomerRepository()
 
 	userAdminService := service.NewUserAdminService(db, userAdminRepository, jwtSecret, bcryptSalt)
 	productService := service.NewProductService(db, productRepository)
+	userCustomerService := service.NewUserCustomerService(db, userCustomerRepository)
 
 	userAdminHandler := handler.NewUserAdminHandler(userAdminService)
 	productHandler := handler.NewProductHandler(productService)
+	userCustomerHandler := handler.NewUserCustomerHandler(userCustomerService)
 
 	r := gin.Default()
 
@@ -45,6 +48,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	product.GET("", productHandler.GetProducts())
 	product.PUT(":id", productHandler.UpdateProductByID())
 	product.DELETE(":id", productHandler.DeleteProductByID())
+
+	customer := apiV1.Group("/customer")
+	customer.POST("/register", userCustomerHandler.CreateUserCustomer())
 
 	return r
 }
