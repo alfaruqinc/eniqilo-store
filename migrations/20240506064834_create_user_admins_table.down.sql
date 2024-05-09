@@ -1,1 +1,1 @@
-DROP TABLE user_admins;
+DROP TABLE IF EXISTS user_admins;
