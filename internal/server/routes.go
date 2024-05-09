@@ -58,6 +58,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	checkout := product.Group("/checkout")
 	checkout.POST("", checkoutHandler.CreateCheckout())
+	checkout.GET("/history", checkoutHandler.GetCheckoutHistory())
 
 	customer := apiV1.Group("/customer")
 	customer.GET("", userCustomerHandler.GetUserCustomers())
