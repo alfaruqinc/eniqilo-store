@@ -60,6 +60,13 @@ type GetCheckoutHistoryResponse struct {
 	Change         int                       `json:"change"`
 }
 
+type CheckoutHistoryQueryParams struct {
+	customerId string `form:"customerId"`
+	limit      string `form:"limit"`
+	offset     string `form:"offset"`
+	createdAt  string `form:"createdAt"`
+}
+
 func (cr *CheckoutRequest) NewCheckouts() (Checkout, []ProductCheckout) {
 	id := uuid.New()
 	rawCreatedAt := time.Now().Format(time.RFC3339)
