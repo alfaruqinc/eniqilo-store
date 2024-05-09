@@ -1,6 +1,7 @@
 package server
 
 import (
+	"eniqilo-store/internal/auth"
 	"eniqilo-store/internal/handler"
 	"eniqilo-store/internal/repository"
 	"eniqilo-store/internal/service"
@@ -28,6 +29,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	productService := service.NewProductService(db, productRepository)
 	userCustomerService := service.NewUserCustomerService(db, userCustomerRepository)
 	checkoutService := service.NewCheckoutService(db, checkoutRepository)
+	auths := auth.NewAuthMiddleware(db, jwtSecret, userAdminRepository)
 
 	userAdminHandler := handler.NewUserAdminHandler(userAdminService)
 	productHandler := handler.NewProductHandler(productService)
@@ -47,10 +49,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 	staff.POST("/login", userAdminHandler.LoginUserAdminHandler())
 
 	product := apiV1.Group("/product")
+	product.Use(auths.Authentication())
 	product.POST("", productHandler.CreateProduct())
 	product.GET("", productHandler.GetProducts())
 	product.PUT(":id", productHandler.UpdateProductByID())
 	product.DELETE(":id", productHandler.DeleteProductByID())
+	product.GET("/customer", productHandler.GetProductsForCustomer())
 
 	checkout := product.Group("/checkout")
 	checkout.POST("", checkoutHandler.CreateCheckout())
