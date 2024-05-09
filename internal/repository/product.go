@@ -9,6 +9,7 @@ import (
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, db *sql.DB, product domain.Product) error
 	GetProducts(ctx context.Context, db *sql.DB, queryParams string, args []any) ([]domain.ProductResponse, error)
+	GetProductsForCustomer(ctx context.Context, db *sql.DB, queryParams string, args []any) ([]domain.ProductForCustomerResponse, error)
 	UpdateProductByID(ctx context.Context, db *sql.DB, product domain.Product) (int64, error)
 	DeleteProductByID(ctx context.Context, db *sql.DB, productId string) (int64, error)
 	CheckProductExistsByID(ctx context.Context, db *sql.DB, productId string) (bool, error)
@@ -59,6 +60,39 @@ func (pr *productRepository) GetProducts(ctx context.Context, db *sql.DB, queryP
 			&product.ID, &product.CreatedAt, &product.Name, &product.Sku,
 			&product.Category, &product.ImageUrl, &product.Stock, &product.Notes,
 			&product.Price, &product.Location, &product.IsAvailable,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+
+	return products, nil
+}
+
+func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql.DB, queryParams string, args []any) ([]domain.ProductForCustomerResponse, error) {
+	query := `
+		SELECT id, created_at, name, sku, category, image_url, stock, notes, 
+				price, location
+		FROM products
+	`
+	query += queryParams
+
+	rows, err := db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	products := []domain.ProductForCustomerResponse{}
+	for rows.Next() {
+		product := domain.ProductForCustomerResponse{}
+
+		err := rows.Scan(
+			&product.ID, &product.CreatedAt, &product.Name, &product.Sku,
+			&product.Category, &product.ImageUrl, &product.Stock, &product.Notes,
+			&product.Price, &product.Location,
 		)
 		if err != nil {
 			return nil, err
