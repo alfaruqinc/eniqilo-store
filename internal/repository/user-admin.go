@@ -9,7 +9,7 @@ import (
 type UserAdminRepository interface {
 	CreateUserAdminRepository(ctx context.Context, tx *sql.Tx, userAdmin domain.UserAdmin) error
 	GetUserByIDAdminRepository(ctx context.Context, tx *sql.Tx, id string) (*domain.UserAdmin, error)
-	GetUserByPhoneNumberRepository(ctx context.Context, tx *sql.Tx, phoneNumber string) (*domain.UserAdmin, error)
+	GetUserByPhoneNumberRepository(ctx context.Context, db *sql.DB, phoneNumber string) (*domain.UserAdmin, error)
 	CheckPhoneNumberExists(ctx context.Context, tx *sql.Tx, phoneNumber string) (bool, error)
 }
 
@@ -44,12 +44,12 @@ func (u *userRepository) GetUserByIDAdminRepository(ctx context.Context, tx *sql
 	return &domain.UserAdmin{}, nil
 }
 
-func (u *userRepository) GetUserByPhoneNumberRepository(ctx context.Context, tx *sql.Tx, phoneNumber string) (*domain.UserAdmin, error) {
+func (u *userRepository) GetUserByPhoneNumberRepository(ctx context.Context, db *sql.DB, phoneNumber string) (*domain.UserAdmin, error) {
 	user := domain.UserAdmin{}
 
 	query := `SELECT id, created_at, phone_number, name, role, password FROM user_admins WHERE phone_number = $1`
 
-	row := tx.QueryRowContext(ctx, query, phoneNumber)
+	row := db.QueryRowContext(ctx, query, phoneNumber)
 	err := row.Scan(&user.ID, &user.CreatedAt, &user.PhoneNumber, &user.Name, &user.Role, &user.Password)
 	if err != nil {
 		return nil, err

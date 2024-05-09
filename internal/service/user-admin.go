@@ -76,20 +76,9 @@ func (u *userAdminService) RegisterUserAdminService(ctx context.Context, userAdm
 }
 
 func (u *userAdminService) LoginUserAdminService(ctx context.Context, userAdminPayload domain.LoginUserAdmin) (*domain.UserAdminResponseWithAccessToken, domain.MessageErr) {
-	tx, err := u.db.Begin()
-	if err != nil {
-		return nil, domain.NewInternalServerError(err.Error())
-	}
-	defer tx.Rollback()
-
-	userAdmin, err := u.userAdminRepository.GetUserByPhoneNumberRepository(ctx, tx, userAdminPayload.PhoneNumber)
+	userAdmin, err := u.userAdminRepository.GetUserByPhoneNumberRepository(ctx, u.db, userAdminPayload.PhoneNumber)
 	if err != nil {
 		return nil, domain.NewNotFoundError("staff is not found")
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, domain.NewInternalServerError(err.Error())
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(userAdmin.Password), []byte(userAdminPayload.Password))
