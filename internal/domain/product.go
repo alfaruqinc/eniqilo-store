@@ -65,6 +65,19 @@ type ProductResponse struct {
 	IsAvailable bool      `json:"isAvailable"`
 }
 
+type ProductForCustomerResponse struct {
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	Name      string    `json:"name"`
+	Sku       string    `json:"sku"`
+	Category  string    `json:"category"`
+	ImageUrl  string    `json:"imageUrl"`
+	Notes     string    `json:"notes"`
+	Price     int       `json:"price"`
+	Stock     int       `json:"stock"`
+	Location  string    `json:"location"`
+}
+
 type UpdateProductResponse struct {
 	ID        string    `json:"id"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -86,6 +99,16 @@ type ProductQueryParams struct {
 	Price       string `form:"price"`
 	InStock     string `form:"inStock"`
 	CreatedAt   string `form:"createdAt"`
+}
+
+type ProductForCustomerQueryParams struct {
+	Limit    string `form:"limit"`
+	Offset   string `form:"offset"`
+	Name     string `form:"name"`
+	Category string `form:"category"`
+	Sku      string `form:"sku"`
+	Price    string `form:"price"`
+	InStock  string `form:"inStock"`
 }
 
 func (pr *ProductRequest) NewProduct() Product {

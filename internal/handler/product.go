@@ -13,6 +13,7 @@ import (
 type ProductHandler interface {
 	CreateProduct() gin.HandlerFunc
 	GetProducts() gin.HandlerFunc
+	GetProductsForCustomer() gin.HandlerFunc
 	UpdateProductByID() gin.HandlerFunc
 	DeleteProductByID() gin.HandlerFunc
 }
@@ -65,6 +66,22 @@ func (ph *productHandler) GetProducts() gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusOK, domain.NewMessageSuccess("success get products", products))
+	}
+}
+
+func (ph *productHandler) GetProductsForCustomer() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var queryParams domain.ProductForCustomerQueryParams
+		ctx.ShouldBindQuery(&queryParams)
+
+		products, err := ph.productService.GetProductsForCustomer(ctx, queryParams)
+		if err != nil {
+			err, _ := err.(domain.MessageErr)
+			ctx.JSON(err.Status(), err)
+			return
+		}
+
+		ctx.JSON(http.StatusOK, domain.NewMessageSuccess("success get products for customer", products))
 	}
 }
 

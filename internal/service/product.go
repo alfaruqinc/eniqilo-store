@@ -16,6 +16,7 @@ import (
 type ProductService interface {
 	CreateProduct(ctx context.Context, product domain.Product) domain.MessageErr
 	GetProducts(ctx context.Context, queryParams domain.ProductQueryParams) ([]domain.ProductResponse, domain.MessageErr)
+	GetProductsForCustomer(ctx context.Context, queryParams domain.ProductForCustomerQueryParams) ([]domain.ProductForCustomerResponse, domain.MessageErr)
 	UpdateProductByID(ctx context.Context, product domain.Product) domain.MessageErr
 	DeleteProductByID(ctx context.Context, productId string) domain.MessageErr
 }
@@ -131,6 +132,15 @@ func (ps *productService) GetProducts(ctx context.Context, queryParams domain.Pr
 	query += "\n" + strings.Join(limitOffsetClause, " ")
 
 	products, err := ps.productRepository.GetProducts(ctx, ps.db, query, args)
+	if err != nil {
+		return nil, domain.NewInternalServerError(err.Error())
+	}
+
+	return products, nil
+}
+
+func (ps *productService) GetProductsForCustomer(ctx context.Context, queryParams domain.ProductForCustomerQueryParams) ([]domain.ProductForCustomerResponse, domain.MessageErr) {
+	products, err := ps.productRepository.GetProductsForCustomer(ctx, ps.db, queryParams)
 	if err != nil {
 		return nil, domain.NewInternalServerError(err.Error())
 	}
