@@ -11,6 +11,7 @@ import (
 
 type CheckoutService interface {
 	CreateCheckout(ctx context.Context, body domain.CheckoutRequest) domain.MessageErr
+	GetCheckoutHistory(ctx context.Context) ([]domain.GetCheckoutHistoryResponse, domain.MessageErr)
 }
 
 type checkoutService struct {
@@ -55,4 +56,36 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 	}
 
 	return nil
+}
+
+func (cs *checkoutService) GetCheckoutHistory(ctx context.Context) ([]domain.GetCheckoutHistoryResponse, domain.MessageErr) {
+	checkouts, err := cs.checkoutRepository.GetCheckoutHistory(ctx, cs.db)
+	if err != nil {
+		return nil, domain.NewInternalServerError(err.Error())
+	}
+
+	productDetailsMap := map[string][]domain.ProductCheckoutResponse{}
+	for _, chk := range checkouts {
+		productDetailsMap[chk.TransactionID] = append(productDetailsMap[chk.TransactionID], domain.ProductCheckoutResponse{
+			ProductID: chk.ProductID,
+			Quantity:  chk.Quantity,
+		})
+	}
+
+	checkoutHistory := []domain.GetCheckoutHistoryResponse{}
+	uniqueMap := map[string]bool{}
+	for _, chk := range checkouts {
+		if !uniqueMap[chk.TransactionID] {
+			uniqueMap[chk.TransactionID] = true
+			history := domain.GetCheckoutHistoryResponse{
+				TransactionID:  chk.TransactionID,
+				Paid:           chk.Paid,
+				Change:         chk.Change,
+				ProductDetails: productDetailsMap[chk.TransactionID],
+			}
+			checkoutHistory = append(checkoutHistory, history)
+		}
+	}
+
+	return checkoutHistory, nil
 }
