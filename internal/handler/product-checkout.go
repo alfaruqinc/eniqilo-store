@@ -11,6 +11,7 @@ import (
 
 type CheckoutHandler interface {
 	CreateCheckout() gin.HandlerFunc
+	GetCheckoutHistory() gin.HandlerFunc
 }
 
 type checkoutHandler struct {
@@ -39,5 +40,17 @@ func (ch *checkoutHandler) CreateCheckout() gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success checkout", ""))
+	}
+}
+
+func (ch *checkoutHandler) GetCheckoutHistory() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		checkouts, err := ch.checkoutSerivce.GetCheckoutHistory(ctx)
+		if err != nil {
+			ctx.JSON(err.Status(), err)
+			return
+		}
+
+		ctx.JSON(http.StatusOK, domain.NewMessageSuccess("success get checkout history", checkouts))
 	}
 }
