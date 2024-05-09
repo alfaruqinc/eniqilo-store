@@ -45,6 +45,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	product.GET("", productHandler.GetProducts())
 	product.PUT(":id", productHandler.UpdateProductByID())
 	product.DELETE(":id", productHandler.DeleteProductByID())
+	product.GET("/customer", productHandler.GetProductsForCustomer())
 
 	return r
 }
