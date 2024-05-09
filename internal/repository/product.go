@@ -144,7 +144,7 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 	}
 
 	if len(whereClause) > 0 {
-		queryCondition += "\nWHERE " + strings.Join(whereClause, " AND ")
+		queryCondition += "\nAND " + strings.Join(whereClause, " AND ")
 	}
 	if len(orderClause) > 0 {
 		queryCondition += "\nORDER BY " + strings.Join(orderClause, ", ")
@@ -155,6 +155,7 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 		SELECT id, created_at, name, sku, category, image_url, stock, notes, 
 				price, location
 		FROM products
+		WHERE is_available = true
 	`
 	query += queryCondition
 
