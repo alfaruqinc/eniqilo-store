@@ -11,6 +11,7 @@ import (
 
 type CheckoutRepository interface {
 	CreateCheckout(ctx context.Context, tx *sql.Tx, checkout domain.Checkout, productCheckout []domain.ProductCheckout) error
+	GetCheckoutHistory(ctx context.Context, db *sql.DB) ([]domain.GetCheckoutHistory, error)
 }
 
 type checkoutRepository struct{}
@@ -56,4 +57,31 @@ func (cr *checkoutRepository) CreateCheckout(ctx context.Context, tx *sql.Tx, ch
 	}
 
 	return nil
+}
+
+func (cr *checkoutRepository) GetCheckoutHistory(ctx context.Context, db *sql.DB) ([]domain.GetCheckoutHistory, error) {
+	query := `
+		SELECT c.id, c.user_customer_id, pc.product_id, pc.quantity, c.paid, c.change
+		FROM checkouts c
+		INNER JOIN product_checkouts pc ON pc.checkout_id = c.id
+	`
+	rows, err := db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	checkouts := []domain.GetCheckoutHistory{}
+	for rows.Next() {
+		checkout := domain.GetCheckoutHistory{}
+
+		err := rows.Scan(&checkout.TransactionID, &checkout.CustomerID, &checkout.ProductID, &checkout.Quantity, &checkout.Paid, &checkout.Change)
+		if err != nil {
+			return nil, err
+		}
+
+		checkouts = append(checkouts, checkout)
+	}
+
+	return checkouts, nil
 }
