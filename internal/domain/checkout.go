@@ -38,6 +38,28 @@ type CheckoutResponse struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+type GetCheckoutHistory struct {
+	TransactionID string `json:"transactionId"`
+	CustomerID    string `json:"customerId"`
+	ProductID     string `json:"productId"`
+	Quantity      int    `json:"quantity"`
+	Paid          int    `json:"paid"`
+	Change        int    `json:"change"`
+}
+
+type ProductCheckoutResponse struct {
+	ProductID string `json:"productId"`
+	Quantity  int    `json:"quantity"`
+}
+
+type GetCheckoutHistoryResponse struct {
+	TransactionID  string                    `json:"transactionId"`
+	CustomerID     string                    `json:"customerId"`
+	ProductDetails []ProductCheckoutResponse `json:"productDetails" db:"product_details"`
+	Paid           int                       `json:"paid"`
+	Change         int                       `json:"change"`
+}
+
 func (cr *CheckoutRequest) NewCheckouts() (Checkout, []ProductCheckout) {
 	id := uuid.New()
 	rawCreatedAt := time.Now().Format(time.RFC3339)
