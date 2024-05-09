@@ -11,7 +11,7 @@ import (
 
 type CheckoutService interface {
 	CreateCheckout(ctx context.Context, body domain.CheckoutRequest) domain.MessageErr
-	GetCheckoutHistory(ctx context.Context) ([]domain.GetCheckoutHistoryResponse, domain.MessageErr)
+	GetCheckoutHistory(ctx context.Context, queryParams domain.CheckoutHistoryQueryParams) ([]domain.GetCheckoutHistoryResponse, domain.MessageErr)
 }
 
 type checkoutService struct {
@@ -58,8 +58,8 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 	return nil
 }
 
-func (cs *checkoutService) GetCheckoutHistory(ctx context.Context) ([]domain.GetCheckoutHistoryResponse, domain.MessageErr) {
-	checkouts, err := cs.checkoutRepository.GetCheckoutHistory(ctx, cs.db)
+func (cs *checkoutService) GetCheckoutHistory(ctx context.Context, queryParams domain.CheckoutHistoryQueryParams) ([]domain.GetCheckoutHistoryResponse, domain.MessageErr) {
+	checkouts, err := cs.checkoutRepository.GetCheckoutHistory(ctx, cs.db, queryParams)
 	if err != nil {
 		return nil, domain.NewInternalServerError(err.Error())
 	}

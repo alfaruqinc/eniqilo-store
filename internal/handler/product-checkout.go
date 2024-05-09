@@ -45,7 +45,10 @@ func (ch *checkoutHandler) CreateCheckout() gin.HandlerFunc {
 
 func (ch *checkoutHandler) GetCheckoutHistory() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		checkouts, err := ch.checkoutSerivce.GetCheckoutHistory(ctx)
+		var queryParams domain.CheckoutHistoryQueryParams
+		ctx.ShouldBindQuery(&queryParams)
+
+		checkouts, err := ch.checkoutSerivce.GetCheckoutHistory(ctx, queryParams)
 		if err != nil {
 			ctx.JSON(err.Status(), err)
 			return

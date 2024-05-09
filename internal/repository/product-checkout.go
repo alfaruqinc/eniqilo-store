@@ -11,7 +11,7 @@ import (
 
 type CheckoutRepository interface {
 	CreateCheckout(ctx context.Context, tx *sql.Tx, checkout domain.Checkout, productCheckout []domain.ProductCheckout) error
-	GetCheckoutHistory(ctx context.Context, db *sql.DB) ([]domain.GetCheckoutHistory, error)
+	GetCheckoutHistory(ctx context.Context, db *sql.DB, queryParams domain.CheckoutHistoryQueryParams) ([]domain.GetCheckoutHistory, error)
 }
 
 type checkoutRepository struct{}
@@ -59,13 +59,64 @@ func (cr *checkoutRepository) CreateCheckout(ctx context.Context, tx *sql.Tx, ch
 	return nil
 }
 
-func (cr *checkoutRepository) GetCheckoutHistory(ctx context.Context, db *sql.DB) ([]domain.GetCheckoutHistory, error) {
+func (cr *checkoutRepository) GetCheckoutHistory(ctx context.Context, db *sql.DB, queryParams domain.CheckoutHistoryQueryParams) ([]domain.GetCheckoutHistory, error) {
+	var queryCondition string
+	var limitOffsetClause []string
+	var whereClause []string
+	var orderClause []string
+	var args []any
+
+	val := reflect.ValueOf(queryParams)
+	typ := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		key := strings.ToLower(typ.Field(i).Name)
+		value := val.Field(i).String()
+		argPos := len(args) + 1
+
+		if key == "limit" || key == "offset" {
+			if key == "limit" && len(value) < 1 {
+				value = "5"
+			}
+			if key == "offset" && len(value) < 1 {
+				value = "0"
+			}
+
+			limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("%s $%d", key, argPos))
+			args = append(args, value)
+			continue
+		}
+
+		if len(value) < 1 {
+			continue
+		}
+
+		if key == "createdat" {
+			if value != "asc" && value != "desc" {
+				continue
+			}
+			key = "created_at"
+
+			orderClause = append(orderClause, fmt.Sprintf("%s %s", key, value))
+			continue
+		}
+	}
+	if len(whereClause) > 0 {
+		queryCondition += "\nAND " + strings.Join(whereClause, " AND ")
+	}
+	if len(orderClause) > 0 {
+		queryCondition += "\nORDER BY " + strings.Join(orderClause, ", ")
+	}
+	queryCondition += "\n" + strings.Join(limitOffsetClause, " ")
+
 	query := `
 		SELECT c.id, c.user_customer_id, pc.product_id, pc.quantity, c.paid, c.change
 		FROM checkouts c
 		INNER JOIN product_checkouts pc ON pc.checkout_id = c.id
 	`
-	rows, err := db.QueryContext(ctx, query)
+	query += queryCondition
+
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
