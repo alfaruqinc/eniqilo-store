@@ -38,7 +38,7 @@ type ProductRequest struct {
 	Name        string `json:"name" binding:"required,gte=1,lte=30"`
 	Sku         string `json:"sku" binding:"required,gte=1,lte=30"`
 	Category    string `json:"category" binding:"required,oneof=Clothing Accessories Footwear Beverages"`
-	ImageUrl    string `json:"imageUrl" binding:"required,url"`
+	ImageUrl    string `json:"imageUrl" binding:"required,validurl"`
 	Notes       string `json:"notes" binding:"required,gte=1,lte=200"`
 	Price       int    `json:"price" binding:"min=1"`
 	Stock       int    `json:"stock" binding:"required,min=0,max=100000"`

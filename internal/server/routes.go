@@ -6,10 +6,14 @@ import (
 	"eniqilo-store/internal/repository"
 	"eniqilo-store/internal/service"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 var (
@@ -37,6 +41,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	checkoutHandler := handler.NewCheckoutHandler(checkoutService)
 
 	r := gin.Default()
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("validurl", validURL)
+	}
 
 	r.GET("/", s.HelloWorldHandler)
 
@@ -76,4 +84,20 @@ func (s *Server) HelloWorldHandler(c *gin.Context) {
 
 func (s *Server) healthHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.db.Health())
+}
+
+func validURL(fl validator.FieldLevel) bool {
+	urlString := fl.Field().String()
+	if !strings.Contains(urlString, ".") {
+		return false
+	}
+	_, err := url.ParseRequestURI(urlString)
+	if err != nil {
+		return false
+	}
+	u, err := url.Parse(urlString)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+	return true
 }
