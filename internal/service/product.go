@@ -71,6 +71,13 @@ func (ps *productService) GetProducts(ctx context.Context, queryParams domain.Pr
 		}
 
 		if len(value) < 1 {
+			// default order by created_at desc
+			if key == "createdat" {
+				key = "created_at"
+				orderClause = append(orderClause, fmt.Sprintf("%s desc", key))
+				continue
+			}
+
 			continue
 		}
 
