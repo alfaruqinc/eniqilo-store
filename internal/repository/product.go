@@ -15,7 +15,7 @@ type ProductRepository interface {
 	GetProducts(ctx context.Context, db *sql.DB, queryParams string, args []any) ([]domain.ProductResponse, error)
 	GetProductsForCustomer(ctx context.Context, db *sql.DB, queryParams domain.ProductForCustomerQueryParams) ([]domain.ProductForCustomerResponse, error)
 	GetProductStockByIDs(ctx context.Context, db *sql.DB, productIds []string) ([]domain.ProductResponse, error)
-	// GetProductPricesByIDs(ctx context.Context, db *sql.DB, productIds []string) ([]domain.ProductResponse, error)
+	GetProductPriceByIDs(ctx context.Context, db *sql.DB, productIds []string) ([]domain.ProductResponse, error)
 	UpdateProductByID(ctx context.Context, db *sql.DB, product domain.Product) (int64, error)
 	DeleteProductByID(ctx context.Context, db *sql.DB, productId string) (int64, error)
 	CheckProductExistsByID(ctx context.Context, db *sql.DB, productId string) (bool, error)
@@ -214,6 +214,32 @@ func (pr *productRepository) GetProductStockByIDs(ctx context.Context, db *sql.D
 	}
 
 	return productsStock, nil
+}
+
+func (pr *productRepository) GetProductPriceByIDs(ctx context.Context, db *sql.DB, productIds []string) ([]domain.ProductResponse, error) {
+	query := `
+		SELECT id, price
+		FROM products
+		WHERE id = any ($1)
+	`
+	rows, err := db.QueryContext(ctx, query, productIds)
+	if err != nil {
+		return nil, err
+	}
+
+	productPrices := []domain.ProductResponse{}
+	for rows.Next() {
+		productPrice := domain.ProductResponse{}
+
+		err := rows.Scan(&productPrice.ID, &productPrice.Price)
+		if err != nil {
+			return nil, err
+		}
+
+		productPrices = append(productPrices, productPrice)
+	}
+
+	return productPrices, nil
 }
 
 func (pr *productRepository) UpdateProductByID(ctx context.Context, db *sql.DB, product domain.Product) (int64, error) {

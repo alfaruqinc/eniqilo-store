@@ -56,13 +56,13 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 	}
 
 	productsStock, err := cs.productRepository.GetProductStockByIDs(ctx, cs.db, productIDs)
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
 	for _, ps := range productsStock {
 		if ps.Stock < productQuantities[ps.ID] {
 			return domain.NewBadRequestError(fmt.Sprintf("%s stock is not enough", ps.Name))
 		}
-	}
-	if err != nil {
-		return domain.NewInternalServerError(err.Error())
 	}
 
 	ok, err = cs.productRepository.CheckProductAvailabilities(ctx, cs.db, productIDs)
@@ -73,7 +73,19 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 		return domain.NewBadRequestError("one of productIds isAvailable == false")
 	}
 
-	// TODO: check if the paid is enough
+	totalPrice := 0
+	productPrices, err := cs.productRepository.GetProductPriceByIDs(ctx, cs.db, productIDs)
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+	for _, ps := range productPrices {
+		fmt.Println(ps.Price)
+		totalPrice += ps.Price * productQuantities[ps.ID]
+	}
+	if checkout.Paid < totalPrice {
+		return domain.NewBadRequestError("not enough money")
+	}
+
 	// TODO: check if the change is correct
 
 	tx, err := cs.db.BeginTx(ctx, nil)
