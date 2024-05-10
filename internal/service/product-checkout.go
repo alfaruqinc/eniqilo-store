@@ -79,7 +79,6 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 		return domain.NewInternalServerError(err.Error())
 	}
 	for _, ps := range productPrices {
-		fmt.Println(ps.Price)
 		totalPrice += ps.Price * productQuantities[ps.ID]
 	}
 	if checkout.Paid < totalPrice {

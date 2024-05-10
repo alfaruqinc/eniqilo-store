@@ -166,7 +166,6 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 		WHERE is_available = true
 	`
 	query += queryCondition
-	fmt.Println(query)
 
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
