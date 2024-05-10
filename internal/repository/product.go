@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type ProductRepository interface {
@@ -296,6 +298,11 @@ func (pr *productRepository) DeleteProductByID(ctx context.Context, db *sql.DB, 
 	`
 	res, err := db.ExecContext(ctx, query, productId)
 	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "22P02" {
+				return 0, nil
+			}
+		}
 		return 0, err
 	}
 
