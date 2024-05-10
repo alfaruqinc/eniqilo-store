@@ -70,6 +70,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	checkout.GET("/history", checkoutHandler.GetCheckoutHistory())
 
 	customer := apiV1.Group("/customer")
+	customer.Use(auths.Authentication())
 	customer.GET("", userCustomerHandler.GetUserCustomers())
 	customer.POST("/register", userCustomerHandler.CreateUserCustomer())
 
