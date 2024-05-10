@@ -8,8 +8,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 var (
@@ -31,6 +34,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	productHandler := handler.NewProductHandler(productService)
 
 	r := gin.Default()
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("fullname", fullName)
+	}
 
 	r.GET("/", s.HelloWorldHandler)
 
@@ -62,4 +69,11 @@ func (s *Server) HelloWorldHandler(c *gin.Context) {
 
 func (s *Server) healthHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.db.Health())
+}
+
+var fullName validator.Func = func(fl validator.FieldLevel) bool {
+	name := fl.Field().String()
+	check := strings.Split(name, " ")
+
+	return len(check) == 2
 }
