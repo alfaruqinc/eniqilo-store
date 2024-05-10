@@ -27,7 +27,7 @@ type RegisterUserAdminRequest struct {
 }
 
 type LoginUserAdmin struct {
-	PhoneNumber string `json:"phoneNumber" binding:"required,gte=10,lte=16,e164"`
+	PhoneNumber string `json:"phoneNumber" binding:"required,gte=10,lte=16,phonenumber"`
 	Password    string `json:"password" binding:"required,gte=5,lte=15"`
 }
 
