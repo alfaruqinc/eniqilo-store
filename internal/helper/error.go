@@ -41,5 +41,5 @@ func ValidateRequest(err error) domain.MessageErr {
 			return domain.NewBadRequestError(msgForTag(fe))
 		}
 	}
-	return domain.NewBadRequestError("unhandled validation")
+	return domain.NewBadRequestError(err.Error())
 }
