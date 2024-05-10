@@ -263,6 +263,11 @@ func (pr *productRepository) UpdateProductByID(ctx context.Context, db *sql.DB, 
 		product.Notes, product.Price, product.Stock, product.Location, product.IsAvailable,
 	)
 	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "22P02" {
+				return 0, nil
+			}
+		}
 		return 0, err
 	}
 
