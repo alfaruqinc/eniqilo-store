@@ -22,7 +22,7 @@ func msgForTag(fe validator.FieldError) string {
 		return fmt.Sprintf("minimum %s is %s", field, param)
 	case "max":
 		return fmt.Sprintf("maximum %s is %s", field, param)
-	case "e164", "url", "validurl":
+	case "e164", "url", "validurl", "phonenumber":
 		return fmt.Sprintf("wrong %s format", field)
 	case "boolean":
 		return fmt.Sprintf("%s should be true or false", field)
