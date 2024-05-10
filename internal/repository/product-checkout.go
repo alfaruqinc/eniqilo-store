@@ -86,7 +86,7 @@ func (cr *checkoutRepository) GetCheckoutHistory(ctx context.Context, db *sql.DB
 	queryCondition += "\n" + strings.Join(limitOffsetClause, " ")
 
 	query := `
-		SELECT c.id, c.user_customer_id, pc.product_id, pc.quantity, c.paid, c.change
+		SELECT c.id, c.created_at, c.user_customer_id, pc.product_id, pc.quantity, c.paid, c.change
 		FROM checkouts c
 		INNER JOIN product_checkouts pc ON pc.checkout_id = c.id
 	`
@@ -102,7 +102,7 @@ func (cr *checkoutRepository) GetCheckoutHistory(ctx context.Context, db *sql.DB
 	for rows.Next() {
 		checkout := domain.GetCheckoutHistory{}
 
-		err := rows.Scan(&checkout.TransactionID, &checkout.CustomerID, &checkout.ProductID, &checkout.Quantity, &checkout.Paid, &checkout.Change)
+		err := rows.Scan(&checkout.TransactionID, &checkout.CreatedAt, &checkout.CustomerID, &checkout.ProductID, &checkout.Quantity, &checkout.Paid, &checkout.Change)
 		if err != nil {
 			return nil, err
 		}

@@ -39,12 +39,13 @@ type CheckoutResponse struct {
 }
 
 type GetCheckoutHistory struct {
-	TransactionID string `json:"transactionId"`
-	CustomerID    string `json:"customerId"`
-	ProductID     string `json:"productId"`
-	Quantity      int    `json:"quantity"`
-	Paid          int    `json:"paid"`
-	Change        int    `json:"change"`
+	TransactionID string    `json:"transactionId"`
+	CreatedAt     time.Time `json:"createdAt"`
+	CustomerID    string    `json:"customerId"`
+	ProductID     string    `json:"productId"`
+	Quantity      int       `json:"quantity"`
+	Paid          int       `json:"paid"`
+	Change        int       `json:"change"`
 }
 
 type ProductCheckoutResponse struct {
@@ -54,6 +55,7 @@ type ProductCheckoutResponse struct {
 
 type GetCheckoutHistoryResponse struct {
 	TransactionID  string                    `json:"transactionId"`
+	CreatedAt      time.Time                 `json:"createdAt"`
 	CustomerID     string                    `json:"customerId"`
 	ProductDetails []ProductCheckoutResponse `json:"productDetails" db:"product_details"`
 	Paid           int                       `json:"paid"`
@@ -61,10 +63,10 @@ type GetCheckoutHistoryResponse struct {
 }
 
 type CheckoutHistoryQueryParams struct {
-	customerId string `form:"customerId"`
-	limit      string `form:"limit"`
-	offset     string `form:"offset"`
-	createdAt  string `form:"createdAt"`
+	CustomerId string `form:"customerId"`
+	Limit      string `form:"limit"`
+	Offset     string `form:"offset"`
+	CreatedAt  string `form:"createdAt"`
 }
 
 func (cr *CheckoutRequest) NewCheckouts() (Checkout, []ProductCheckout) {

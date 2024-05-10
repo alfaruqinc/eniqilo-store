@@ -141,6 +141,7 @@ func (cs *checkoutService) GetCheckoutHistory(ctx context.Context, queryParams d
 			uniqueMap[chk.TransactionID] = true
 			history := domain.GetCheckoutHistoryResponse{
 				TransactionID:  chk.TransactionID,
+				CreatedAt:      chk.CreatedAt,
 				Paid:           chk.Paid,
 				Change:         chk.Change,
 				ProductDetails: productDetailsMap[chk.TransactionID],
