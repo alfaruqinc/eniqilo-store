@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"eniqilo-store/internal/domain"
+
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type UserCustomerRepository interface {
@@ -64,6 +66,11 @@ func (ucr *userCustomerRepository) CheckCustomerExistsByID(ctx context.Context, 
 	var exists bool
 	err := db.QueryRowContext(ctx, query, id).Scan(&exists)
 	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "22P02" {
+				return false, nil
+			}
+		}
 		return false, err
 	}
 

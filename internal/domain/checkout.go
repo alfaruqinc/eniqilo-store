@@ -27,7 +27,7 @@ type ProductCheckoutRequest struct {
 }
 
 type CheckoutRequest struct {
-	CustomerID     string                   `json:"customerId" binding:"omitempty,uuid4"`
+	CustomerID     string                   `json:"customerId" binding:"required"`
 	ProductDetails []ProductCheckoutRequest `json:"productDetails" binding:"required,min=1,dive"`
 	Paid           int                      `json:"paid" binding:"min=1"`
 	Change         int                      `json:"change" binding:"min=0"`
