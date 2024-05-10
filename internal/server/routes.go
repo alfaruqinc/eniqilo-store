@@ -44,6 +44,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("validurl", validURL)
+		v.RegisterValidation("phonenumber", validPhonenumber)
 	}
 
 	r.GET("/", s.HelloWorldHandler)
@@ -99,5 +100,14 @@ func validURL(fl validator.FieldLevel) bool {
 	if err != nil || u.Scheme == "" || u.Host == "" {
 		return false
 	}
+	return true
+}
+
+func validPhonenumber(fl validator.FieldLevel) bool {
+	phoneNumber := fl.Field().String()
+	if !strings.HasPrefix(phoneNumber, "+") {
+		return false
+	}
+
 	return true
 }
