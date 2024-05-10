@@ -35,7 +35,8 @@ func NewAuthMiddleware(db *sql.DB, jwtSecret string, userAdminRepository reposit
 func (a *authMiddleware) Authentication() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		path := ctx.FullPath()
-		if path == "/v1/product/customer" {
+		method := ctx.Request.Method
+		if method == "GET" && path == "/v1/product/customer" {
 			return
 		}
 
