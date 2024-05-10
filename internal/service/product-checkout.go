@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"eniqilo-store/internal/domain"
 	"eniqilo-store/internal/repository"
-
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type CheckoutService interface {
@@ -15,19 +13,65 @@ type CheckoutService interface {
 }
 
 type checkoutService struct {
-	db                 *sql.DB
-	checkoutRepository repository.CheckoutRepository
+	db                     *sql.DB
+	checkoutRepository     repository.CheckoutRepository
+	userCustomerRepository repository.UserCustomerRepository
+	productRepository      repository.ProductRepository
 }
 
-func NewCheckoutService(db *sql.DB, checkoutRepository repository.CheckoutRepository) CheckoutService {
+func NewCheckoutService(db *sql.DB, checkoutRepository repository.CheckoutRepository, userCustomerRepository repository.UserCustomerRepository, productRepository repository.ProductRepository) CheckoutService {
 	return &checkoutService{
-		db:                 db,
-		checkoutRepository: checkoutRepository,
+		db:                     db,
+		checkoutRepository:     checkoutRepository,
+		userCustomerRepository: userCustomerRepository,
+		productRepository:      productRepository,
 	}
 }
 
 func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.CheckoutRequest) domain.MessageErr {
 	checkout, productCheckouts := body.NewCheckouts()
+
+	ok, err := cs.userCustomerRepository.CheckCustomerIfExistByID(ctx, cs.db, checkout.UserCustomerID)
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+	if !ok {
+		return domain.NewNotFoundError("customerId is not found")
+	}
+
+	var productIDs []string
+	var productQuantities []map[string]int
+	for _, pc := range productCheckouts {
+		productIDs = append(productIDs, pc.ProductID)
+		productQuantities = append(productQuantities, map[string]int{pc.ProductID: pc.Quantity})
+	}
+
+	ok, err = cs.productRepository.CheckProductExists(ctx, cs.db, productIDs)
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+	if !ok {
+		return domain.NewNotFoundError("one of productIds is not found")
+	}
+
+	ok, err = cs.productRepository.CheckProductStocks(ctx, cs.db, productQuantities)
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+	if !ok {
+		return domain.NewBadRequestError("one of productIds is out of stock")
+	}
+
+	ok, err = cs.productRepository.CheckProductAvailabilities(ctx, cs.db, productIDs)
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+	if !ok {
+		return domain.NewBadRequestError("one of productIds isAvailable == false")
+	}
+
+	// TODO: check if the paid is enough
+	// TODO: check if the change is correct
 
 	tx, err := cs.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -37,17 +81,14 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 
 	err = cs.checkoutRepository.CreateCheckout(ctx, tx, checkout, productCheckouts)
 	if err != nil {
-		if err, ok := err.(*pgconn.PgError); ok {
-			customerNotFound := err.Code == "23503" && err.ConstraintName == "fk_user_customer_id_checkouts"
-			productsNotFound := err.Code == "23503" && err.ConstraintName == "fk_product_id_product_checkouts"
-			if customerNotFound {
-				return domain.NewNotFoundError("customer is not found")
-			} else if productsNotFound {
-				return domain.NewNotFoundError("one of your products is not found")
-			}
-		}
-
 		return domain.NewInternalServerError(err.Error())
+	}
+
+	for _, pc := range productCheckouts {
+		err = cs.productRepository.UpdateProductStockByID(ctx, tx, pc.ID, pc.Quantity)
+		if err != nil {
+			return domain.NewInternalServerError(err.Error())
+		}
 	}
 
 	err = tx.Commit()

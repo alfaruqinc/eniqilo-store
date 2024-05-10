@@ -12,6 +12,8 @@ import (
 type CheckoutRepository interface {
 	CreateCheckout(ctx context.Context, tx *sql.Tx, checkout domain.Checkout, productCheckout []domain.ProductCheckout) error
 	GetCheckoutHistory(ctx context.Context, db *sql.DB, queryParams domain.CheckoutHistoryQueryParams) ([]domain.GetCheckoutHistory, error)
+	CreateProductCheckout(ctx context.Context, tx *sql.Tx, productCheckout domain.ProductCheckout) error
+	BulkCreateProductCheckout(ctx context.Context, tx *sql.Tx, productCheckout []domain.ProductCheckout) error
 }
 
 type checkoutRepository struct{}
@@ -26,32 +28,6 @@ func (cr *checkoutRepository) CreateCheckout(ctx context.Context, tx *sql.Tx, ch
 		VALUES ($1, $2, $3, $4, $5)
 	`
 	_, err := tx.ExecContext(ctx, query, checkout.ID, checkout.CreatedAt, checkout.UserCustomerID, checkout.Paid, checkout.Change)
-	if err != nil {
-		return err
-	}
-
-	inserts := []string{}
-	args := []any{}
-	for _, pc := range productCheckouts {
-		val := reflect.ValueOf(pc)
-
-		insert := []string{}
-		for i := 0; i < val.NumField(); i++ {
-			value := val.Field(i).Interface()
-			argsPos := len(args) + 1
-
-			insert = append(insert, fmt.Sprintf("$%d", argsPos))
-			args = append(args, value)
-		}
-		placeholder := fmt.Sprintf("(%s)", strings.Join(insert, ", "))
-		inserts = append(inserts, placeholder)
-	}
-	query = `
-		INSERT INTO product_checkouts (id, product_id, quantity, checkout_id)
-		VALUES `
-	query += strings.Join(inserts, ", ")
-
-	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		return err
 	}
@@ -135,4 +111,49 @@ func (cr *checkoutRepository) GetCheckoutHistory(ctx context.Context, db *sql.DB
 	}
 
 	return checkouts, nil
+}
+
+func (cr *checkoutRepository) BulkCreateProductCheckout(ctx context.Context, tx *sql.Tx, productCheckouts []domain.ProductCheckout) error {
+	inserts := []string{}
+	args := []any{}
+	query := ""
+
+	for _, pc := range productCheckouts {
+		val := reflect.ValueOf(pc)
+
+		insert := []string{}
+		for i := 0; i < val.NumField(); i++ {
+			value := val.Field(i).Interface()
+			argsPos := len(args) + 1
+
+			insert = append(insert, fmt.Sprintf("$%d", argsPos))
+			args = append(args, value)
+		}
+		placeholder := fmt.Sprintf("(%s)", strings.Join(insert, ", "))
+		inserts = append(inserts, placeholder)
+	}
+	query = `
+		INSERT INTO product_checkouts (id, product_id, quantity, checkout_id)
+		VALUES `
+	query += strings.Join(inserts, ", ")
+
+	_, err := tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (cr *checkoutRepository) CreateProductCheckout(ctx context.Context, tx *sql.Tx, productCheckout domain.ProductCheckout) error {
+	query := `
+		INSERT INTO product_checkouts (id, product_id, quantity, checkout_id)
+		VALUES (?, ?, ?, ?)
+	`
+	_, err := tx.ExecContext(ctx, query, productCheckout.ID, productCheckout.ProductID, productCheckout.Quantity, productCheckout.CheckoutID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

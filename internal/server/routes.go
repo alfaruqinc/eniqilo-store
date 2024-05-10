@@ -28,7 +28,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	userAdminService := service.NewUserAdminService(db, userAdminRepository, jwtSecret, bcryptSalt)
 	productService := service.NewProductService(db, productRepository)
 	userCustomerService := service.NewUserCustomerService(db, userCustomerRepository)
-	checkoutService := service.NewCheckoutService(db, checkoutRepository)
+	checkoutService := service.NewCheckoutService(db, checkoutRepository, userCustomerRepository, productRepository)
 	auths := auth.NewAuthMiddleware(db, jwtSecret, userAdminRepository)
 
 	userAdminHandler := handler.NewUserAdminHandler(userAdminService)

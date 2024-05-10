@@ -17,6 +17,10 @@ type ProductRepository interface {
 	UpdateProductByID(ctx context.Context, db *sql.DB, product domain.Product) (int64, error)
 	DeleteProductByID(ctx context.Context, db *sql.DB, productId string) (int64, error)
 	CheckProductExistsByID(ctx context.Context, db *sql.DB, productId string) (bool, error)
+	CheckProductExists(ctx context.Context, db *sql.DB, IDs []string) (bool, error)
+	CheckProductStocks(ctx context.Context, db *sql.DB, productCheckouts []map[string]int) (bool, error)
+	CheckProductAvailabilities(ctx context.Context, db *sql.DB, productIDs []string) (bool, error)
+	UpdateProductStockByID(ctx context.Context, tx *sql.Tx, product string, quantity int) error
 }
 
 type productRepository struct{}
@@ -247,4 +251,75 @@ func (pr *productRepository) DeleteProductByID(ctx context.Context, db *sql.DB, 
 	}
 
 	return affRow, nil
+}
+
+func (pr *productRepository) CheckProductExists(ctx context.Context, db *sql.DB, IDs []string) (bool, error) {
+	query := `
+		SELECT COUNT(id) = ?
+		FROM products
+		WHERE id IN (?)
+	`
+	var exists bool
+	err := db.QueryRowContext(ctx, query, len(IDs), IDs).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (pr *productRepository) CheckProductStocks(ctx context.Context, db *sql.DB, productCheckouts []map[string]int) (bool, error) {
+	var queryCondition string
+	var args []any
+
+	for i, pc := range productCheckouts {
+		queryCondition += fmt.Sprintf("WHEN $%d THEN $%d ", i*2+1, i*2+2)
+		args = append(args, pc["product_id"], pc["quantity"])
+	}
+
+	query := `
+		SELECT COUNT(product_id) = ?
+		FROM products
+		WHERE id = CASE id
+	`
+	query += queryCondition
+	query += "END"
+
+	var exists bool
+	err := db.QueryRowContext(ctx, query, len(args), args).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (pr *productRepository) CheckProductAvailabilities(ctx context.Context, db *sql.DB, productIDs []string) (bool, error) {
+	query := `
+		SELECT COUNT(id) = ?
+		FROM products
+		WHERE id IN (?)
+		AND is_available = true
+	`
+	var exists bool
+	err := db.QueryRowContext(ctx, query, len(productIDs), productIDs).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (pr *productRepository) UpdateProductStockByID(ctx context.Context, tx *sql.Tx, id string, quantity int) error {
+	query := `
+		UPDATE products
+		SET stock = stock - ?
+		WHERE id = ?
+	`
+	_, err := tx.ExecContext(ctx, query, quantity, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
