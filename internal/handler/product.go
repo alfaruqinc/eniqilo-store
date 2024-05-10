@@ -109,7 +109,7 @@ func (ph *productHandler) UpdateProductByID() gin.HandlerFunc {
 			UpdatedAt: product.CreatedAt,
 		}
 
-		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success update product", productResponse))
+		ctx.JSON(http.StatusOK, domain.NewMessageSuccess("success update product", productResponse))
 	}
 }
 
