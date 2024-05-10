@@ -112,6 +112,10 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 		}
 
 		if len(value) < 1 {
+			if key == "createdat" {
+				orderClause = append(orderClause, "created_at desc")
+				continue
+			}
 			continue
 		}
 
