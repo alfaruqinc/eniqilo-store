@@ -15,7 +15,7 @@ type UserCustomer struct {
 
 type RegisterUserCustomerRequest struct {
 	Name        string `json:"name" binding:"required,gte=5,lte=50"`
-	PhoneNumber string `json:"phoneNumber" binding:"required,gte=10,lte=16,phonenumber"`
+	PhoneNumber string `json:"phoneNumber" binding:"required,gte=10,lte=17,phonenumber"`
 }
 
 type RegisterUserCustomerResponse struct {
