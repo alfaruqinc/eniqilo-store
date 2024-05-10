@@ -30,8 +30,6 @@ func msgForTag(fe validator.FieldError) string {
 		return fmt.Sprintf("%s should be one of this value %s", field, param)
 	case "uuid4":
 		return fmt.Sprintf("%s should in uuidv4 format", field)
-	case "fullname":
-		return fmt.Sprintf("%s can only have first and last name", field)
 	}
 
 	return "unhandled validation"
