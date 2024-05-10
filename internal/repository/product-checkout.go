@@ -64,6 +64,9 @@ func (cr *checkoutRepository) GetCheckoutHistory(ctx context.Context, db *sql.DB
 		}
 
 		if len(value) < 1 {
+			if key == "createdat" {
+				orderClause = append(orderClause, "created_at desc")
+			}
 			continue
 		}
 
