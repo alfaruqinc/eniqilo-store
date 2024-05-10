@@ -9,7 +9,7 @@ import (
 type UserCustomerRepository interface {
 	CreateUserCustomer(ctx context.Context, db *sql.DB, userCustomer domain.UserCustomer) error
 	GetCustomers(ctx context.Context, db *sql.DB, queryParams string, args []any) ([]domain.UserCustomerResponse, error)
-	CheckCustomerIfExistByID(ctx context.Context, db *sql.DB, id string) (bool, error)
+	CheckCustomerExistsByID(ctx context.Context, db *sql.DB, id string) (bool, error)
 }
 
 type userCustomerRepository struct{}
@@ -59,8 +59,8 @@ func (ucr *userCustomerRepository) GetCustomers(ctx context.Context, db *sql.DB,
 	return customers, nil
 }
 
-func (ucr *userCustomerRepository) CheckCustomerIfExistByID(ctx context.Context, db *sql.DB, id string) (bool, error) {
-	query := `SELECT EXISTS(SELECT 1 FROM user_customers WHERE id = ?)`
+func (ucr *userCustomerRepository) CheckCustomerExistsByID(ctx context.Context, db *sql.DB, id string) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM user_customers WHERE id = $1)`
 	var exists bool
 	err := db.QueryRowContext(ctx, query, id).Scan(&exists)
 	if err != nil {

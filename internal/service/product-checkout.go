@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"eniqilo-store/internal/domain"
 	"eniqilo-store/internal/repository"
+	"fmt"
 )
 
 type CheckoutService interface {
@@ -31,7 +32,7 @@ func NewCheckoutService(db *sql.DB, checkoutRepository repository.CheckoutReposi
 func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.CheckoutRequest) domain.MessageErr {
 	checkout, productCheckouts := body.NewCheckouts()
 
-	ok, err := cs.userCustomerRepository.CheckCustomerIfExistByID(ctx, cs.db, checkout.UserCustomerID)
+	ok, err := cs.userCustomerRepository.CheckCustomerExistsByID(ctx, cs.db, checkout.UserCustomerID)
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
 	}
@@ -40,10 +41,10 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 	}
 
 	var productIDs []string
-	var productQuantities []map[string]int
+	productQuantities := map[string]int{}
 	for _, pc := range productCheckouts {
 		productIDs = append(productIDs, pc.ProductID)
-		productQuantities = append(productQuantities, map[string]int{pc.ProductID: pc.Quantity})
+		productQuantities[pc.ProductID] = pc.Quantity
 	}
 
 	ok, err = cs.productRepository.CheckProductExists(ctx, cs.db, productIDs)
@@ -54,12 +55,14 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 		return domain.NewNotFoundError("one of productIds is not found")
 	}
 
-	ok, err = cs.productRepository.CheckProductStocks(ctx, cs.db, productQuantities)
+	productsStock, err := cs.productRepository.GetProductStockByIDs(ctx, cs.db, productIDs)
+	for _, ps := range productsStock {
+		if ps.Stock < productQuantities[ps.ID] {
+			return domain.NewBadRequestError(fmt.Sprintf("%s stock is not enough", ps.Name))
+		}
+	}
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
-	}
-	if !ok {
-		return domain.NewBadRequestError("one of productIds is out of stock")
 	}
 
 	ok, err = cs.productRepository.CheckProductAvailabilities(ctx, cs.db, productIDs)
@@ -80,6 +83,11 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 	defer tx.Rollback()
 
 	err = cs.checkoutRepository.CreateCheckout(ctx, tx, checkout, productCheckouts)
+	if err != nil {
+		return domain.NewInternalServerError(err.Error())
+	}
+
+	err = cs.checkoutRepository.BulkCreateProductCheckout(ctx, tx, productCheckouts)
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
 	}

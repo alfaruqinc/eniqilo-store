@@ -10,7 +10,7 @@ import (
 )
 
 type CheckoutRepository interface {
-	CreateCheckout(ctx context.Context, tx *sql.Tx, checkout domain.Checkout, productCheckout []domain.ProductCheckout) error
+	CreateCheckout(ctx context.Context, tx *sql.Tx, checkout domain.Checkout, productCheckouts []domain.ProductCheckout) error
 	GetCheckoutHistory(ctx context.Context, db *sql.DB, queryParams domain.CheckoutHistoryQueryParams) ([]domain.GetCheckoutHistory, error)
 	CreateProductCheckout(ctx context.Context, tx *sql.Tx, productCheckout domain.ProductCheckout) error
 	BulkCreateProductCheckout(ctx context.Context, tx *sql.Tx, productCheckout []domain.ProductCheckout) error
@@ -148,7 +148,7 @@ func (cr *checkoutRepository) BulkCreateProductCheckout(ctx context.Context, tx 
 func (cr *checkoutRepository) CreateProductCheckout(ctx context.Context, tx *sql.Tx, productCheckout domain.ProductCheckout) error {
 	query := `
 		INSERT INTO product_checkouts (id, product_id, quantity, checkout_id)
-		VALUES (?, ?, ?, ?)
+		VALUES ($1, $2, $3, $4)
 	`
 	_, err := tx.ExecContext(ctx, query, productCheckout.ID, productCheckout.ProductID, productCheckout.Quantity, productCheckout.CheckoutID)
 	if err != nil {
