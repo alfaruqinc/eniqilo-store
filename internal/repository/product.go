@@ -21,7 +21,7 @@ type ProductRepository interface {
 	UpdateProductByID(ctx context.Context, db *sql.DB, product domain.Product) (int64, error)
 	DeleteProductByID(ctx context.Context, db *sql.DB, productId string) (int64, error)
 	CheckProductExistsByID(ctx context.Context, db *sql.DB, productId string) (bool, error)
-	CheckProductExists(ctx context.Context, db *sql.DB, IDs []string) (bool, error)
+	CheckProductExistsByIDs(ctx context.Context, db *sql.DB, IDs []string) (bool, error)
 	CheckProductAvailabilities(ctx context.Context, db *sql.DB, productIDs []string) (bool, error)
 	CheckProductPrice(ctx context.Context, db *sql.DB, productCheckouts []domain.ProductCheckoutRequest) (int, error)
 	UpdateProductStockByID(ctx context.Context, tx *sql.Tx, product string, quantity int) error
@@ -290,6 +290,11 @@ func (pr *productRepository) CheckProductExistsByID(ctx context.Context, db *sql
 	var exists bool
 	err := db.QueryRowContext(ctx, query, productId).Scan(&exists)
 	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "22P02" {
+				return false, nil
+			}
+		}
 		return false, err
 	}
 
@@ -319,7 +324,7 @@ func (pr *productRepository) DeleteProductByID(ctx context.Context, db *sql.DB, 
 	return affRow, nil
 }
 
-func (pr *productRepository) CheckProductExists(ctx context.Context, db *sql.DB, IDs []string) (bool, error) {
+func (pr *productRepository) CheckProductExistsByIDs(ctx context.Context, db *sql.DB, IDs []string) (bool, error) {
 	query := `
 		SELECT COUNT(id) = $1
 		FROM products
@@ -328,6 +333,11 @@ func (pr *productRepository) CheckProductExists(ctx context.Context, db *sql.DB,
 	var exists bool
 	err := db.QueryRowContext(ctx, query, len(IDs), IDs).Scan(&exists)
 	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "22P02" {
+				return false, nil
+			}
+		}
 		return false, err
 	}
 

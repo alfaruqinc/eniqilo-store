@@ -22,14 +22,14 @@ type ProductCheckout struct {
 }
 
 type ProductCheckoutRequest struct {
-	ProductID string `json:"productId" binding:"uuid4"`
-	Quantity  int    `json:"quantity" binding:"min=1,number"`
+	ProductID string `json:"productId" binding:"required"`
+	Quantity  int    `json:"quantity" binding:"required,min=1,number"`
 }
 
 type CheckoutRequest struct {
 	CustomerID     string                   `json:"customerId" binding:"required"`
 	ProductDetails []ProductCheckoutRequest `json:"productDetails" binding:"required,min=1,dive"`
-	Paid           int                      `json:"paid" binding:"min=1,number"`
+	Paid           int                      `json:"paid" binding:"required,min=1,number"`
 	Change         *int                     `json:"change" binding:"required,min=0,number"`
 }
 

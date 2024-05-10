@@ -47,7 +47,7 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 		productQuantities[pc.ProductID] = pc.Quantity
 	}
 
-	ok, err = cs.productRepository.CheckProductExists(ctx, cs.db, productIDs)
+	ok, err = cs.productRepository.CheckProductExistsByIDs(ctx, cs.db, productIDs)
 	if err != nil {
 		return domain.NewInternalServerError(err.Error())
 	}
