@@ -36,7 +36,7 @@ func (a *authMiddleware) Authentication() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		path := ctx.FullPath()
 		if path == "/v1/product/customer" {
-			ctx.Next()
+			return
 		}
 
 		invalidTokenErr := domain.NewUnauthenticatedError("invalid token")
