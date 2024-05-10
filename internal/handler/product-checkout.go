@@ -39,7 +39,7 @@ func (ch *checkoutHandler) CreateCheckout() gin.HandlerFunc {
 			return
 		}
 
-		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success checkout", nil))
+		ctx.JSON(http.StatusOK, domain.NewMessageSuccess("success checkout", nil))
 	}
 }
 
