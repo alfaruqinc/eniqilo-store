@@ -31,7 +31,7 @@ type Product struct {
 	Price       int       `db:"price"`
 	Stock       int       `db:"stock"`
 	Location    string    `db:"stock"`
-	IsAvailable bool      `db:"is_available"`
+	IsAvailable *bool     `db:"is_available"`
 }
 
 type ProductRequest struct {
@@ -43,7 +43,7 @@ type ProductRequest struct {
 	Price       int    `json:"price" binding:"min=1"`
 	Stock       int    `json:"stock" binding:"required,min=0,max=100000"`
 	Location    string `json:"location" binding:"required,gte=1,lte=200"`
-	IsAvailable bool   `json:"isAvailable" binding:"required,boolean"`
+	IsAvailable *bool  `json:"isAvailable" binding:"required"`
 }
 
 type CreateProductResponse struct {
