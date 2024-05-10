@@ -85,7 +85,7 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 		return domain.NewBadRequestError(fmt.Sprintf("not enough money, total price is %d", totalPrice))
 	}
 	change := checkout.Paid - totalPrice
-	if checkout.Change != change {
+	if *checkout.Change != change {
 		return domain.NewBadRequestError(fmt.Sprintf("change is incorrect should be %d", change))
 	}
 

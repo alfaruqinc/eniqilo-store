@@ -11,7 +11,7 @@ type Checkout struct {
 	CreatedAt      time.Time `db:"created_at"`
 	UserCustomerID string    `db:"user_customer_id"`
 	Paid           int       `db:"paid"`
-	Change         int       `db:"change"`
+	Change         *int      `db:"change"`
 }
 
 type ProductCheckout struct {
@@ -30,7 +30,7 @@ type CheckoutRequest struct {
 	CustomerID     string                   `json:"customerId" binding:"required"`
 	ProductDetails []ProductCheckoutRequest `json:"productDetails" binding:"required,min=1,dive"`
 	Paid           int                      `json:"paid" binding:"min=1"`
-	Change         int                      `json:"change" binding:"min=0"`
+	Change         *int                     `json:"change" binding:"required,min=0"`
 }
 
 type CheckoutResponse struct {
