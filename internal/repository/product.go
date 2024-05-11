@@ -378,10 +378,10 @@ func (pr *productRepository) CheckProductAvailabilities(ctx context.Context, db 
 func (pr *productRepository) UpdateProductStockByID(ctx context.Context, tx *sql.Tx, id string, quantity int) error {
 	query := `
 		UPDATE products
-		SET stock = stock - $1
-		WHERE id = $2
+		SET stock = stock - $2
+		WHERE id = $1
 	`
-	_, err := tx.ExecContext(ctx, query, quantity, id)
+	_, err := tx.ExecContext(ctx, query, id, quantity)
 	if err != nil {
 		return err
 	}

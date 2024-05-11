@@ -106,7 +106,7 @@ func (cs *checkoutService) CreateCheckout(ctx context.Context, body domain.Check
 	}
 
 	for _, pc := range productCheckouts {
-		err = cs.productRepository.UpdateProductStockByID(ctx, tx, pc.ID, pc.Quantity)
+		err = cs.productRepository.UpdateProductStockByID(ctx, tx, pc.ProductID, pc.Quantity)
 		if err != nil {
 			return domain.NewInternalServerError(err.Error())
 		}
