@@ -40,6 +40,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	userCustomerHandler := handler.NewUserCustomerHandler(userCustomerService)
 	checkoutHandler := handler.NewCheckoutHandler(checkoutService)
 
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
