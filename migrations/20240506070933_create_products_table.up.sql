@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS products (
   id uuid PRIMARY KEY,
+  sequence_id SERIAL UNIQUE  NOT NULL,
   name varchar NOT NULL,
   sku varchar NOT NULL,
   category varchar NOT NULL,

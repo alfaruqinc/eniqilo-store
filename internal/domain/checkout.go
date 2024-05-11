@@ -16,6 +16,7 @@ type Checkout struct {
 
 type ProductCheckout struct {
 	ID         string `db:"id"`
+	SequenceID int    `db:"sequence_id"`
 	ProductID  string `db:"product_id"`
 	Quantity   int    `db:"quantity"`
 	CheckoutID string `db:"checkout_id"`
