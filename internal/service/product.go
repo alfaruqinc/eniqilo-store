@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -49,18 +50,21 @@ func (ps *productService) GetProducts(ctx context.Context, queryParams domain.Pr
 	var orderClause []string
 	var args []any
 
-	if len(queryParams.Limit) == 0 {
-		limitOffsetClause = append(limitOffsetClause, "limit 5")
-	} else {
-		limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("limit $%d", len(args)+1))
-		args = append(args, queryParams.Limit)
+	limit := "5"
+	qlimit, _ := strconv.Atoi(queryParams.Limit)
+	if qlimit > 0 {
+		limit = queryParams.Limit
 	}
-	if len(queryParams.Offset) == 0 {
-		limitOffsetClause = append(limitOffsetClause, "offset 0")
-	} else {
-		limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("offset $%d", len(args)+1))
-		args = append(args, queryParams.Offset)
+
+	offset := "0"
+	qoffset, _ := strconv.Atoi(queryParams.Offset)
+	if qoffset > 0 {
+		qoffset = (qoffset - 1) * qlimit
+		offset = strconv.Itoa(qoffset)
 	}
+
+	limitOffsetClause = append(limitOffsetClause, "limit $1 offset $2")
+	args = append(args, limit, offset)
 
 	val := reflect.ValueOf(queryParams)
 	typ := val.Type()
