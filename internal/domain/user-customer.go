@@ -8,6 +8,7 @@ import (
 
 type UserCustomer struct {
 	ID          string    `db:"id"`
+	Sid         int       `db:"sid"`
 	CreatedAt   time.Time `db:"created_at"`
 	Name        string    `db:"name"`
 	PhoneNumber string    `db:"phone_number"`

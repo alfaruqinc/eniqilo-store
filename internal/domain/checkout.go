@@ -8,6 +8,7 @@ import (
 
 type Checkout struct {
 	ID             string    `db:"id"`
+	Sid            int       `db:"sid"`
 	CreatedAt      time.Time `db:"created_at"`
 	UserCustomerID string    `db:"user_customer_id"`
 	Paid           int       `db:"paid"`
@@ -16,6 +17,7 @@ type Checkout struct {
 
 type ProductCheckout struct {
 	ID         string `db:"id"`
+	Sid        int    `db:"sid"`
 	ProductID  string `db:"product_id"`
 	Quantity   int    `db:"quantity"`
 	CheckoutID string `db:"checkout_id"`
