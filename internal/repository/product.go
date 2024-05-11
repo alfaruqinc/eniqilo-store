@@ -162,7 +162,7 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 		queryCondition += "\nAND " + strings.Join(whereClause, " AND ")
 	}
 	if len(orderClause) > 0 {
-		queryCondition += "\nORDER BY " + strings.Join(orderClause, ", ")
+		queryCondition += "\nORDER BY " + strings.Join(orderClause, ", ") + ", sid desc"
 	}
 	queryCondition += "\n" + strings.Join(limitOffsetClause, " ")
 

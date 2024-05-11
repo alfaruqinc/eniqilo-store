@@ -47,6 +47,7 @@ func (ucs *userCustomerService) CreateUserCustomer(ctx context.Context, userCust
 func (ucs *userCustomerService) GetUserCustomers(ctx context.Context, queryParams domain.UserCustomerQueryParams) ([]domain.UserCustomerResponse, domain.MessageErr) {
 	var query string
 	var whereClause []string
+	orderClause := []string{"created_at desc, sid desc"}
 	var args []any
 
 	val := reflect.ValueOf(queryParams)
@@ -77,6 +78,7 @@ func (ucs *userCustomerService) GetUserCustomers(ctx context.Context, queryParam
 	if len(whereClause) > 0 {
 		query += "\nWHERE " + strings.Join(whereClause, " AND ")
 	}
+	query += "\nORDER BY " + strings.Join(orderClause, ", ")
 
 	customers, err := ucs.userCustomerRepository.GetCustomers(ctx, ucs.db, query, args)
 	if err != nil {

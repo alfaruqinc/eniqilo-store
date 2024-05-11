@@ -141,7 +141,7 @@ func (ps *productService) GetProducts(ctx context.Context, queryParams domain.Pr
 		query += "\nWHERE " + strings.Join(whereClause, " AND ")
 	}
 	if len(orderClause) > 0 {
-		query += "\nORDER BY " + strings.Join(orderClause, ", ")
+		query += "\nORDER BY " + strings.Join(orderClause, ", ") + ", sid desc"
 	}
 	query += "\n" + strings.Join(limitOffsetClause, " ")
 

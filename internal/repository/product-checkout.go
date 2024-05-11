@@ -68,7 +68,7 @@ func (cr *checkoutRepository) GetCheckoutHistory(ctx context.Context, db *sql.DB
 
 		if len(value) < 1 {
 			if key == "createdat" {
-				orderClause = append(orderClause, "created_at desc")
+				orderClause = append(orderClause, "c.created_at desc")
 			}
 			continue
 		}
@@ -87,7 +87,7 @@ func (cr *checkoutRepository) GetCheckoutHistory(ctx context.Context, db *sql.DB
 		queryCondition += "\nAND " + strings.Join(whereClause, " AND ")
 	}
 	if len(orderClause) > 0 {
-		queryCondition += "\nORDER BY " + strings.Join(orderClause, ", ")
+		queryCondition += "\nORDER BY " + strings.Join(orderClause, ", ") + ", c.sid desc"
 	}
 	queryCondition += "\n" + strings.Join(limitOffsetClause, " ")
 
@@ -126,11 +126,17 @@ func (cr *checkoutRepository) BulkCreateProductCheckout(ctx context.Context, tx 
 
 	for _, pc := range productCheckouts {
 		val := reflect.ValueOf(pc)
+		typ := val.Type()
 
 		insert := []string{}
 		for i := 0; i < val.NumField(); i++ {
+			key := strings.ToLower(typ.Field(i).Name)
 			value := val.Field(i).Interface()
 			argsPos := len(args) + 1
+
+			if key == "sid" {
+				continue
+			}
 
 			insert = append(insert, fmt.Sprintf("$%d", argsPos))
 			args = append(args, value)
