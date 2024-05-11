@@ -29,7 +29,7 @@ type Product struct {
 	ImageUrl    string    `db:"image_url"`
 	Notes       string    `db:"notes"`
 	Price       int       `db:"price"`
-	Stock       int       `db:"stock"`
+	Stock       *int      `db:"stock"`
 	Location    string    `db:"stock"`
 	IsAvailable *bool     `db:"is_available"`
 }
@@ -41,7 +41,7 @@ type ProductRequest struct {
 	ImageUrl    string `json:"imageUrl" binding:"required,validurl"`
 	Notes       string `json:"notes" binding:"required,gte=1,lte=200"`
 	Price       int    `json:"price" binding:"min=1"`
-	Stock       int    `json:"stock" binding:"required,min=0,max=100000"`
+	Stock       *int   `json:"stock" binding:"required,min=0,max=100000"`
 	Location    string `json:"location" binding:"required,gte=1,lte=200"`
 	IsAvailable *bool  `json:"isAvailable" binding:"required"`
 }
