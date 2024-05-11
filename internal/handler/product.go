@@ -109,7 +109,7 @@ func (ph *productHandler) UpdateProductByID() gin.HandlerFunc {
 			UpdatedAt: product.CreatedAt,
 		}
 
-		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success update product", productResponse))
+		ctx.JSON(http.StatusOK, domain.NewMessageSuccess("success update product", productResponse))
 	}
 }
 
@@ -130,6 +130,6 @@ func (ph *productHandler) DeleteProductByID() gin.HandlerFunc {
 			DeletedAt: deletedAt,
 		}
 
-		ctx.JSON(http.StatusCreated, domain.NewMessageSuccess("success delete product", productResponse))
+		ctx.JSON(http.StatusOK, domain.NewMessageSuccess("success delete product", productResponse))
 	}
 }

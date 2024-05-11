@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -49,6 +50,22 @@ func (ps *productService) GetProducts(ctx context.Context, queryParams domain.Pr
 	var orderClause []string
 	var args []any
 
+	limit := "5"
+	qlimit, _ := strconv.Atoi(queryParams.Limit)
+	if qlimit > 0 {
+		limit = queryParams.Limit
+	}
+
+	offset := "0"
+	qoffset, _ := strconv.Atoi(queryParams.Offset)
+	if qoffset > 0 {
+		qoffset = (qoffset - 1) * qlimit
+		offset = strconv.Itoa(qoffset)
+	}
+
+	limitOffsetClause = append(limitOffsetClause, "limit $1 offset $2")
+	args = append(args, limit, offset)
+
 	val := reflect.ValueOf(queryParams)
 	typ := val.Type()
 
@@ -58,19 +75,16 @@ func (ps *productService) GetProducts(ctx context.Context, queryParams domain.Pr
 		argPos := len(args) + 1
 
 		if key == "limit" || key == "offset" {
-			if key == "limit" && len(value) < 1 {
-				value = "5"
-			}
-			if key == "offset" && len(value) < 1 {
-				value = "0"
-			}
-
-			limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("%s $%d", key, argPos))
-			args = append(args, value)
 			continue
 		}
 
 		if len(value) < 1 {
+			// default order by created_at desc
+			if key == "createdat" {
+				orderClause = append(orderClause, "created_at desc")
+				continue
+			}
+
 			continue
 		}
 
@@ -127,7 +141,7 @@ func (ps *productService) GetProducts(ctx context.Context, queryParams domain.Pr
 		query += "\nWHERE " + strings.Join(whereClause, " AND ")
 	}
 	if len(orderClause) > 0 {
-		query += "\nORDER BY " + strings.Join(orderClause, ", ")
+		query += "\nORDER BY " + strings.Join(orderClause, ", ") + ", sid desc"
 	}
 	query += "\n" + strings.Join(limitOffsetClause, " ")
 

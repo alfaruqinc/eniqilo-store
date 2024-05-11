@@ -6,6 +6,7 @@ import (
 	"eniqilo-store/internal/repository"
 	"eniqilo-store/internal/service"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -25,18 +26,26 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	userAdminRepository := repository.NewUserAdminRepository()
 	productRepository := repository.NewProductRepository()
+	userCustomerRepository := repository.NewUserCustomerRepository()
+	checkoutRepository := repository.NewCheckoutRepository()
 
 	userAdminService := service.NewUserAdminService(db, userAdminRepository, jwtSecret, bcryptSalt)
 	productService := service.NewProductService(db, productRepository)
+	userCustomerService := service.NewUserCustomerService(db, userCustomerRepository)
+	checkoutService := service.NewCheckoutService(db, checkoutRepository, userCustomerRepository, productRepository)
 	auths := auth.NewAuthMiddleware(db, jwtSecret, userAdminRepository)
 
 	userAdminHandler := handler.NewUserAdminHandler(userAdminService)
 	productHandler := handler.NewProductHandler(productService)
+	userCustomerHandler := handler.NewUserCustomerHandler(userCustomerService)
+	checkoutHandler := handler.NewCheckoutHandler(checkoutService)
 
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("fullname", fullName)
+		v.RegisterValidation("validurl", validURL)
+		v.RegisterValidation("phonenumber", validPhonenumber)
 	}
 
 	r.GET("/", s.HelloWorldHandler)
@@ -57,6 +66,15 @@ func (s *Server) RegisterRoutes() http.Handler {
 	product.DELETE(":id", productHandler.DeleteProductByID())
 	product.GET("/customer", productHandler.GetProductsForCustomer())
 
+	checkout := product.Group("/checkout")
+	checkout.POST("", checkoutHandler.CreateCheckout())
+	checkout.GET("/history", checkoutHandler.GetCheckoutHistory())
+
+	customer := apiV1.Group("/customer")
+	customer.Use(auths.Authentication())
+	customer.GET("", userCustomerHandler.GetUserCustomers())
+	customer.POST("/register", userCustomerHandler.CreateUserCustomer())
+
 	return r
 }
 
@@ -71,9 +89,27 @@ func (s *Server) healthHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, s.db.Health())
 }
 
-var fullName validator.Func = func(fl validator.FieldLevel) bool {
-	name := fl.Field().String()
-	check := strings.Split(name, " ")
+func validURL(fl validator.FieldLevel) bool {
+	urlString := fl.Field().String()
+	if !strings.Contains(urlString, ".") {
+		return false
+	}
+	_, err := url.ParseRequestURI(urlString)
+	if err != nil {
+		return false
+	}
+	u, err := url.Parse(urlString)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+	return true
+}
 
-	return len(check) == 2
+func validPhonenumber(fl validator.FieldLevel) bool {
+	phoneNumber := fl.Field().String()
+	if !strings.HasPrefix(phoneNumber, "+") {
+		return false
+	}
+
+	return true
 }

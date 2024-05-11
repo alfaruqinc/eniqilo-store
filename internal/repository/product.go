@@ -8,15 +8,23 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, db *sql.DB, product domain.Product) error
 	GetProducts(ctx context.Context, db *sql.DB, queryParams string, args []any) ([]domain.ProductResponse, error)
 	GetProductsForCustomer(ctx context.Context, db *sql.DB, queryParams domain.ProductForCustomerQueryParams) ([]domain.ProductForCustomerResponse, error)
+	GetProductStockByIDs(ctx context.Context, db *sql.DB, productIds []string) ([]domain.ProductResponse, error)
+	GetProductPriceByIDs(ctx context.Context, db *sql.DB, productIds []string) ([]domain.ProductResponse, error)
 	UpdateProductByID(ctx context.Context, db *sql.DB, product domain.Product) (int64, error)
 	DeleteProductByID(ctx context.Context, db *sql.DB, productId string) (int64, error)
 	CheckProductExistsByID(ctx context.Context, db *sql.DB, productId string) (bool, error)
+	CheckProductExistsByIDs(ctx context.Context, db *sql.DB, IDs []string) (bool, error)
+	CheckProductAvailabilities(ctx context.Context, db *sql.DB, productIDs []string) (bool, error)
+	CheckProductPrice(ctx context.Context, db *sql.DB, productCheckouts []domain.ProductCheckoutRequest) (int, error)
+	UpdateProductStockByID(ctx context.Context, tx *sql.Tx, product string, quantity int) error
 }
 
 type productRepository struct{}
@@ -82,6 +90,19 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 	var orderClause []string
 	var args []any
 
+	if len(queryParams.Limit) == 0 {
+		limitOffsetClause = append(limitOffsetClause, "limit 5")
+	} else {
+		limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("limit $%d", len(args)+1))
+		args = append(args, queryParams.Limit)
+	}
+	if len(queryParams.Offset) == 0 {
+		limitOffsetClause = append(limitOffsetClause, "offset 0")
+	} else {
+		limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("offset $%d", len(args)+1))
+		args = append(args, queryParams.Offset)
+	}
+
 	val := reflect.ValueOf(queryParams)
 	typ := val.Type()
 
@@ -91,19 +112,13 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 		argPos := len(args) + 1
 
 		if key == "limit" || key == "offset" {
-			if key == "limit" && len(value) < 1 {
-				value = "5"
-			}
-			if key == "offset" && len(value) < 1 {
-				value = "0"
-			}
-
-			limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("%s $%d", key, argPos))
-			args = append(args, value)
 			continue
 		}
 
 		if len(value) < 1 {
+			if key == "price" {
+				orderClause = append(orderClause, "created_at desc")
+			}
 			continue
 		}
 
@@ -147,7 +162,7 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 		queryCondition += "\nAND " + strings.Join(whereClause, " AND ")
 	}
 	if len(orderClause) > 0 {
-		queryCondition += "\nORDER BY " + strings.Join(orderClause, ", ")
+		queryCondition += "\nORDER BY " + strings.Join(orderClause, ", ") + ", sid desc"
 	}
 	queryCondition += "\n" + strings.Join(limitOffsetClause, " ")
 
@@ -184,14 +199,66 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 	return products, nil
 }
 
+func (pr *productRepository) GetProductStockByIDs(ctx context.Context, db *sql.DB, productIds []string) ([]domain.ProductResponse, error) {
+	query := `
+		SELECT id, name, stock
+		FROM products
+		WHERE id = any ($1)
+	`
+	rows, err := db.QueryContext(ctx, query, productIds)
+	if err != nil {
+		return nil, err
+	}
+
+	productsStock := []domain.ProductResponse{}
+	for rows.Next() {
+		productStock := domain.ProductResponse{}
+
+		err := rows.Scan(&productStock.ID, &productStock.Name, &productStock.Stock)
+		if err != nil {
+			return nil, err
+		}
+
+		productsStock = append(productsStock, productStock)
+	}
+
+	return productsStock, nil
+}
+
+func (pr *productRepository) GetProductPriceByIDs(ctx context.Context, db *sql.DB, productIds []string) ([]domain.ProductResponse, error) {
+	query := `
+		SELECT id, price
+		FROM products
+		WHERE id = any ($1)
+	`
+	rows, err := db.QueryContext(ctx, query, productIds)
+	if err != nil {
+		return nil, err
+	}
+
+	productPrices := []domain.ProductResponse{}
+	for rows.Next() {
+		productPrice := domain.ProductResponse{}
+
+		err := rows.Scan(&productPrice.ID, &productPrice.Price)
+		if err != nil {
+			return nil, err
+		}
+
+		productPrices = append(productPrices, productPrice)
+	}
+
+	return productPrices, nil
+}
+
 func (pr *productRepository) UpdateProductByID(ctx context.Context, db *sql.DB, product domain.Product) (int64, error) {
 	query := `
 		UPDATE products
 		SET name = $2,
 			sku = $3,
 			category = $4,
-			notes = $5,
-			image_url = $6,
+			image_url = $5,
+			notes = $6,
 			price = $7,
 			stock = $8,
 			location = $9,
@@ -203,6 +270,11 @@ func (pr *productRepository) UpdateProductByID(ctx context.Context, db *sql.DB, 
 		product.Notes, product.Price, product.Stock, product.Location, product.IsAvailable,
 	)
 	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "22P02" {
+				return 0, nil
+			}
+		}
 		return 0, err
 	}
 
@@ -225,6 +297,11 @@ func (pr *productRepository) CheckProductExistsByID(ctx context.Context, db *sql
 	var exists bool
 	err := db.QueryRowContext(ctx, query, productId).Scan(&exists)
 	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "22P02" {
+				return false, nil
+			}
+		}
 		return false, err
 	}
 
@@ -238,6 +315,11 @@ func (pr *productRepository) DeleteProductByID(ctx context.Context, db *sql.DB, 
 	`
 	res, err := db.ExecContext(ctx, query, productId)
 	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "22P02" {
+				return 0, nil
+			}
+		}
 		return 0, err
 	}
 
@@ -247,4 +329,69 @@ func (pr *productRepository) DeleteProductByID(ctx context.Context, db *sql.DB, 
 	}
 
 	return affRow, nil
+}
+
+func (pr *productRepository) CheckProductExistsByIDs(ctx context.Context, db *sql.DB, IDs []string) (bool, error) {
+	query := `
+		SELECT COUNT(id) = $1
+		FROM products
+		WHERE id = any ($2)
+	`
+	var exists bool
+	err := db.QueryRowContext(ctx, query, len(IDs), IDs).Scan(&exists)
+	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "22P02" {
+				return false, nil
+			}
+		}
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (cr *productRepository) CheckProductPrice(ctx context.Context, db *sql.DB, productCheckouts []domain.ProductCheckoutRequest) (int, error) {
+	args := []any{}
+	query := `
+		SELECT 
+	`
+
+	var totalPrice int
+	err := db.QueryRowContext(ctx, query, args...).Scan(&totalPrice)
+	if err != nil {
+		return 0, err
+	}
+
+	return totalPrice, nil
+}
+
+func (pr *productRepository) CheckProductAvailabilities(ctx context.Context, db *sql.DB, productIDs []string) (bool, error) {
+	query := `
+		SELECT COUNT(id) = $1
+		FROM products
+		WHERE id = any ($2)
+			AND is_available = true
+	`
+	var exists bool
+	err := db.QueryRowContext(ctx, query, len(productIDs), productIDs).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
+func (pr *productRepository) UpdateProductStockByID(ctx context.Context, tx *sql.Tx, id string, quantity int) error {
+	query := `
+		UPDATE products
+		SET stock = stock - $2
+		WHERE id = $1
+	`
+	_, err := tx.ExecContext(ctx, query, id, quantity)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

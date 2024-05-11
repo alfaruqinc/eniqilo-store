@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -35,20 +36,6 @@ func NewUserAdminService(db *sql.DB, userAdminRepository repository.UserAdminRep
 }
 
 func (u *userAdminService) RegisterUserAdminService(ctx context.Context, userAdminPayload domain.RegisterUserAdminRequest) (*domain.UserAdminResponseWithAccessToken, domain.MessageErr) {
-	tx, err := u.db.Begin()
-	if err != nil {
-		return nil, domain.NewInternalServerError(err.Error())
-	}
-	defer tx.Rollback()
-
-	phoneNumberExists, err := u.userAdminRepository.CheckPhoneNumberExists(ctx, tx, userAdminPayload.PhoneNumber)
-	if err != nil {
-		return nil, domain.NewInternalServerError(err.Error())
-	}
-	if phoneNumberExists {
-		return nil, domain.NewConflictError("phone number already exists")
-	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userAdminPayload.Password), u.bcryptSalt)
 	if err != nil {
 		return nil, domain.NewInternalServerError(err.Error())
@@ -57,13 +44,14 @@ func (u *userAdminService) RegisterUserAdminService(ctx context.Context, userAdm
 	userAdmin := userAdminPayload.NewUserAdminFromDTO()
 	userAdmin.Password = string(hashedPassword)
 
-	err = u.userAdminRepository.CreateUserAdminRepository(ctx, tx, userAdmin)
+	err = u.userAdminRepository.CreateUserAdminRepository(ctx, u.db, userAdmin)
 	if err != nil {
-		return nil, domain.NewInternalServerError(err.Error())
-	}
+		if err, ok := err.(*pgconn.PgError); ok {
+			if err.Code == "23505" {
+				return nil, domain.NewConflictError("phone number already exists")
+			}
+		}
 
-	err = tx.Commit()
-	if err != nil {
 		return nil, domain.NewInternalServerError(err.Error())
 	}
 
