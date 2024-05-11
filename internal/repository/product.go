@@ -87,7 +87,7 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 	var queryCondition string
 	var limitOffsetClause []string
 	var whereClause []string
-	var orderClause []string = []string{"created_at desc"}
+	var orderClause []string
 	var args []any
 
 	val := reflect.ValueOf(queryParams)
@@ -112,6 +112,9 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 		}
 
 		if len(value) < 1 {
+			if key == "price" {
+				orderClause = append(orderClause, "created_at desc")
+			}
 			continue
 		}
 
@@ -166,6 +169,7 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 		WHERE is_available = true
 	`
 	query += queryCondition
+	fmt.Println(query)
 
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
