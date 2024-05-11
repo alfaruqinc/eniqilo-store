@@ -90,6 +90,19 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 	var orderClause []string
 	var args []any
 
+	if len(queryParams.Limit) == 0 {
+		limitOffsetClause = append(limitOffsetClause, "limit 5")
+	} else {
+		limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("limit $%d", len(args)+1))
+		args = append(args, queryParams.Limit)
+	}
+	if len(queryParams.Offset) == 0 {
+		limitOffsetClause = append(limitOffsetClause, "offset 0")
+	} else {
+		limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("offset $%d", len(args)+1))
+		args = append(args, queryParams.Offset)
+	}
+
 	val := reflect.ValueOf(queryParams)
 	typ := val.Type()
 
@@ -99,15 +112,6 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 		argPos := len(args) + 1
 
 		if key == "limit" || key == "offset" {
-			if key == "limit" && len(value) < 1 {
-				value = "5"
-			}
-			if key == "offset" && len(value) < 1 {
-				value = "0"
-			}
-
-			limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("%s $%d", key, argPos))
-			args = append(args, value)
 			continue
 		}
 
@@ -169,7 +173,6 @@ func (pr *productRepository) GetProductsForCustomer(ctx context.Context, db *sql
 		WHERE is_available = true
 	`
 	query += queryCondition
-	fmt.Println(query)
 
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {

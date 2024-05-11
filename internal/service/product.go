@@ -49,6 +49,19 @@ func (ps *productService) GetProducts(ctx context.Context, queryParams domain.Pr
 	var orderClause []string
 	var args []any
 
+	if len(queryParams.Limit) == 0 {
+		limitOffsetClause = append(limitOffsetClause, "limit 5")
+	} else {
+		limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("limit $%d", len(args)+1))
+		args = append(args, queryParams.Limit)
+	}
+	if len(queryParams.Offset) == 0 {
+		limitOffsetClause = append(limitOffsetClause, "offset 0")
+	} else {
+		limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("offset $%d", len(args)+1))
+		args = append(args, queryParams.Offset)
+	}
+
 	val := reflect.ValueOf(queryParams)
 	typ := val.Type()
 
@@ -58,15 +71,6 @@ func (ps *productService) GetProducts(ctx context.Context, queryParams domain.Pr
 		argPos := len(args) + 1
 
 		if key == "limit" || key == "offset" {
-			if key == "limit" && len(value) < 1 {
-				value = "5"
-			}
-			if key == "offset" && len(value) < 1 {
-				value = "0"
-			}
-
-			limitOffsetClause = append(limitOffsetClause, fmt.Sprintf("%s $%d", key, argPos))
-			args = append(args, value)
 			continue
 		}
 
