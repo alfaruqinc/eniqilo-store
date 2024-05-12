@@ -89,13 +89,19 @@ func (cr *checkoutRepository) GetCheckoutHistory(ctx context.Context, db *sql.DB
 	if len(orderClause) > 0 {
 		queryCondition += "\nORDER BY " + strings.Join(orderClause, ", ") + ", c.sid desc"
 	}
-	queryCondition += "\n" + strings.Join(limitOffsetClause, " ")
+
+	subqueryCheckout := `WITH pageCheckouts AS (
+		SELECT c.id, c.created_at, c.user_customer_id, c.paid, c.change, c.sid
+		FROM checkouts c
+	`
+	subqueryCheckout += strings.Join(limitOffsetClause, " ") + ")"
 
 	query := `
 		SELECT c.id, c.created_at, c.user_customer_id, pc.product_id, pc.quantity, c.paid, c.change
-		FROM checkouts c
+		FROM pageCheckouts c
 		INNER JOIN product_checkouts pc ON pc.checkout_id = c.id
 	`
+	query = subqueryCheckout + query
 	query += queryCondition
 
 	rows, err := db.QueryContext(ctx, query, args...)
